@@ -17,7 +17,8 @@
     "@solana/web3.js": "^1.98.4",
     "bs58": "^6.0.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "recharts": "^3.10.1"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

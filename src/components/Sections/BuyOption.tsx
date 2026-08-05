@@ -4,6 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
+import { PayoffChart } from './PayoffChart';
 
 const inputStyle = {
   width: '100%',
@@ -126,6 +127,13 @@ export const BuyOption: FC = () => {
           <span style={{ color: '#5EEAD4', fontSize: '0.9rem', fontWeight: 'bold' }}>${totalCost.toFixed(2)} USDC</span>
         </div>
       </div>
+
+      <PayoffChart 
+        type="buy" 
+        strike={100} 
+        premium={premiumPerOption} 
+        quantity={quantity} 
+      />
 
       <button type="submit" disabled={loading} style={{
         width: '100%',

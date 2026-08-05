@@ -4,6 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
+import { PayoffChart } from './PayoffChart';
 
 const inputStyle = {
   width: '100%',
@@ -125,6 +126,13 @@ export const WriteOption: FC = () => {
 
       <label style={labelStyle}>Premium Price (USDC)</label>
       <input type="number" step="0.01" placeholder="0.00" style={inputStyle} value={premium} onChange={(e) => setPremium(e.target.value)} />
+
+      <PayoffChart 
+        type="write" 
+        strike={parseFloat(strike) || 0} 
+        premium={parseFloat(premium) || 0} 
+        quantity={parseFloat(qty) || 0} 
+      />
 
       <button type="submit" disabled={loading} style={{
         width: '100%',
