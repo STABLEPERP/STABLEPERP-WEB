@@ -1,13 +1,32 @@
+import { useEffect, useState } from 'react';
 import type { FC } from 'react';
 
-// Mock data for display purposes
-const MOCK_MARKETS = [
-  { id: 'MKT-001', asset: 'AAPLx/USDC', strike: '$150.00', expiry: '2026-09-01', type: 'CALL', premium: '$5.00', liquidity: '1,200', change: '+2.4%' },
-  { id: 'MKT-002', asset: 'TSLAx/USDC', strike: '$220.00', expiry: '2026-09-15', type: 'CALL', premium: '$12.50', liquidity: '850', change: '-1.2%' },
-  { id: 'MKT-003', asset: 'NVDAx/USDC', strike: '$110.00', expiry: '2026-08-30', type: 'PUT', premium: '$3.20', liquidity: '3,400', change: '+0.5%' },
-];
+interface Market {
+  id: string;
+  symbol: string;
+  strike: number;
+  expiry: string;
+  totalLiquidity: number;
+  premiumAsk: number;
+}
 
 export const MarketList: FC = () => {
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    fetch(`${API_URL}/markets`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setMarkets(data.data);
+        }
+      })
+      .catch((err) => console.error('Error fetching markets:', err))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div style={{ width: '100%', overflowX: 'auto' }}>
       <table style={{ 
@@ -26,33 +45,37 @@ export const MarketList: FC = () => {
             <th style={{ padding: '1rem' }}>TYPE</th>
             <th style={{ padding: '1rem', textAlign: 'right' }}>PREMIUM</th>
             <th style={{ padding: '1rem', textAlign: 'right' }}>LIQ.</th>
-            <th style={{ padding: '1rem', textAlign: 'right' }}>24H</th>
           </tr>
         </thead>
         <tbody>
-          {MOCK_MARKETS.map((mkt, idx) => {
-            const isPositive = mkt.change.startsWith('+');
-            return (
-              <tr key={idx} style={{ 
-                borderBottom: '1px solid rgba(255,255,255,0.05)',
-                color: '#E5E5E5',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-              >
-                <td style={{ padding: '1rem', color: '#5EEAD4' }}>{mkt.id}</td>
-                <td style={{ padding: '1rem' }}>{mkt.asset}</td>
-                <td style={{ padding: '1rem' }}>{mkt.strike}</td>
-                <td style={{ padding: '1rem' }}>{mkt.expiry}</td>
-                <td style={{ padding: '1rem', color: mkt.type === 'CALL' ? '#5EEAD4' : '#F87171' }}>{mkt.type}</td>
-                <td style={{ padding: '1rem', textAlign: 'right' }}>{mkt.premium}</td>
-                <td style={{ padding: '1rem', textAlign: 'right' }}>{mkt.liquidity}</td>
-                <td style={{ padding: '1rem', textAlign: 'right', color: isPositive ? '#5EEAD4' : '#F87171' }}>{mkt.change}</td>
-              </tr>
-            );
-          })}
+          {loading ? (
+            <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center' }}>Loading markets...</td></tr>
+          ) : markets.length === 0 ? (
+            <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center' }}>No active markets found.</td></tr>
+          ) : (
+            markets.map((mkt) => {
+              const isCall = true; // Placeholder for type since it's missing in simple schema
+              return (
+                <tr key={mkt.id} style={{ 
+                  borderBottom: '1px solid rgba(255,255,255,0.05)',
+                  color: '#E5E5E5',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <td style={{ padding: '1rem', color: '#5EEAD4' }}>{mkt.id.slice(0,8)}...</td>
+                  <td style={{ padding: '1rem' }}>{mkt.symbol}</td>
+                  <td style={{ padding: '1rem' }}>${mkt.strike}</td>
+                  <td style={{ padding: '1rem' }}>{new Date(mkt.expiry).toLocaleDateString()}</td>
+                  <td style={{ padding: '1rem', color: isCall ? '#5EEAD4' : '#F87171' }}>{isCall ? 'CALL' : 'PUT'}</td>
+                  <td style={{ padding: '1rem', textAlign: 'right' }}>${mkt.premiumAsk.toFixed(2)}</td>
+                  <td style={{ padding: '1rem', textAlign: 'right' }}>{mkt.totalLiquidity}</td>
+                </tr>
+              );
+            })
+          )}
         </tbody>
       </table>
     </div>

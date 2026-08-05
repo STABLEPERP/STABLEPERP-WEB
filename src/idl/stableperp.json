@@ -1,0 +1,46 @@
+{
+  "version": "0.1.0",
+  "name": "stableperp",
+  "instructions": [
+    {
+      "name": "writeOption",
+      "accounts": [
+        { "name": "market", "isMut": true, "isSigner": false },
+        { "name": "writerPosition", "isMut": true, "isSigner": false },
+        { "name": "collateralVault", "isMut": true, "isSigner": false },
+        { "name": "writerUnderlyingAta", "isMut": true, "isSigner": false },
+        { "name": "optionMint", "isMut": true, "isSigner": false },
+        { "name": "escrowOptionVault", "isMut": true, "isSigner": false },
+        { "name": "writer", "isMut": true, "isSigner": true },
+        { "name": "underlyingMint", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "qty", "type": "u64" },
+        { "name": "premiumAsk", "type": "u64" }
+      ]
+    },
+    {
+      "name": "buyOption",
+      "accounts": [
+        { "name": "market", "isMut": true, "isSigner": false },
+        { "name": "writerPosition", "isMut": true, "isSigner": false },
+        { "name": "escrowOptionVault", "isMut": true, "isSigner": false },
+        { "name": "writerQuoteAta", "isMut": true, "isSigner": false },
+        { "name": "buyerOptionAta", "isMut": true, "isSigner": false },
+        { "name": "buyerQuoteAta", "isMut": true, "isSigner": false },
+        { "name": "optionMint", "isMut": true, "isSigner": false },
+        { "name": "quoteMint", "isMut": true, "isSigner": false },
+        { "name": "buyer", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "qty", "type": "u64" }
+      ]
+    }
+  ]
+}
