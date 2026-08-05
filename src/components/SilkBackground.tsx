@@ -219,7 +219,10 @@ export const SilkBackground: React.FC<SilkBackgroundProps> = ({
 
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible' && !prefersReducedMotion) {
-        startTime = performance.now() - (gl.getUniform(program, uTime) / (0.0005 * speed));
+        const currentTime = typeof gl.getUniform(program, uTime as WebGLUniformLocation) === 'number' 
+          ? (gl.getUniform(program, uTime as WebGLUniformLocation) as number) 
+          : 0;
+        startTime = performance.now() - (currentTime / (0.0005 * speed));
         animationFrameId = requestAnimationFrame(render);
       } else {
         cancelAnimationFrame(animationFrameId);
