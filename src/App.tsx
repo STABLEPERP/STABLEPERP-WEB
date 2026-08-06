@@ -1,38 +1,14 @@
+import { Routes, Route, Link } from 'react-router-dom';
 import { SilkBackground } from './components/SilkBackground';
 import { Navbar } from './components/Navbar';
-import { MarketList } from './components/Sections/MarketList';
-import { WriteOption } from './components/Sections/WriteOption';
-import { BuyOption } from './components/Sections/BuyOption';
+import { Terminal } from './pages/Terminal';
 import './index.css';
 
-const glassCardStyle = {
-  padding: '2rem',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  color: '#A3A3A3',
-  fontFamily: "'Space Mono', monospace",
-  backgroundColor: 'rgba(20, 20, 20, 0.4)',
-  backdropFilter: 'blur(16px)',
-  WebkitBackdropFilter: 'blur(16px)',
-  borderRadius: '24px',
-  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
-};
 
-const sectionTitleStyle = {
-  fontFamily: "'Space Mono', monospace",
-  color: '#5EEAD4',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-  paddingBottom: '1rem',
-  marginBottom: '2rem',
-  fontSize: '1.5rem',
-  fontWeight: 'normal',
-};
-
-function App() {
+function Landing() {
   return (
     <>
-      <Navbar />
       <SilkBackground color="#5EEAD4" speed={1.0} intensity={0.25} scale={2.0} />
-      
       <main className="hero-container">
         <div className="hero-label">OPTIONS · PERPS · SETTLED IN USDC</div>
         <h1 className="hero-title">
@@ -44,54 +20,130 @@ function App() {
         <p className="hero-subtitle">
           Buy calls and puts, long or short any market, or write them to earn premium. Fully collateralized, oracle-priced, and open 24/7 on Solana.
         </p>
-        <button style={{
-          backgroundColor: '#5EEAD4',
-          color: '#0A0A0A',
-          border: 'none',
-          padding: '1rem 3rem',
-          fontFamily: "'Space Mono', monospace",
-          fontWeight: 'bold',
-          fontSize: '1rem',
-          cursor: 'pointer',
-          letterSpacing: '0.1em'
-        }}>
-          START TRADING
-        </button>
+        <Link to="/terminal" style={{ textDecoration: 'none' }}>
+          <button style={{
+            backgroundColor: '#5EEAD4',
+            color: '#0A0A0A',
+            border: 'none',
+            padding: '1rem 2.5rem',
+            fontFamily: "'Space Mono', monospace",
+            fontWeight: 'bold',
+            fontSize: '1rem',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 0 20px rgba(94, 234, 212, 0.4)'
+          }}>
+            START TRADING
+          </button>
+        </Link>
       </main>
 
-      {/* Sections for M2 */}
-      <section style={{ 
-        padding: '4rem 2rem', 
-        minHeight: '100vh', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        gap: '4rem',
-        position: 'relative', // so it sits above the fixed background
-        zIndex: 1
-      }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
-          <h2 style={sectionTitleStyle}>MARKETS</h2>
-          <div style={glassCardStyle}>
-            <MarketList />
+      <section className="content-section">
+        <div className="section-grid">
+          <div className="glass-panel">
+            <div className="section-title">THE VISION</div>
+            <h2 className="section-heading">Institutional-Grade Derivatives for Everyone.</h2>
+            <p className="section-text">
+              Stableperp bridges the gap between traditional finance and decentralized execution. While it started as a concept rooted in community culture, our architecture is built for serious capital. We believe that robust, highly-liquid synthetic markets should not be gated by centralized entities.
+            </p>
+          </div>
+          <div className="glass-panel">
+            <div className="section-title">THE MISSION</div>
+            <h2 className="section-heading">Transparent, Fully Collateralized On-Chain Markets.</h2>
+            <p className="section-text">
+              No hidden insolvency risks, no opaque order routing. By strictly collateralizing every contract in USDC and utilizing high-fidelity Oracle data, we ensure that every participant—whether hedging a portfolio or providing liquidity—can operate with mathematical certainty and zero counterparty risk.
+            </p>
           </div>
         </div>
 
-        <div style={{ maxWidth: '1000px', margin: '0 auto', width: '100%', display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 400px' }}>
-             <h2 style={sectionTitleStyle}>WRITE OPTION</h2>
-             <div style={glassCardStyle}>
-                <WriteOption />
-             </div>
+        <div className="section-title" style={{ textAlign: 'center', marginBottom: '3rem' }}>CORE INFRASTRUCTURE</div>
+        <div className="feature-cards">
+          <div className="feature-card">
+            <h3 className="feature-title">100% Collateralized</h3>
+            <p className="feature-desc">Every position is mathematically secured by USDC locked in programmatic vaults. If you write an option, the payout is guaranteed. Insolvency is impossible by design.</p>
           </div>
-          <div style={{ flex: '1 1 400px' }}>
-             <h2 style={sectionTitleStyle}>BUY OPTION</h2>
-             <div style={glassCardStyle}>
-                <BuyOption />
-             </div>
+          <div className="feature-card">
+            <h3 className="feature-title">High-Fidelity Oracles</h3>
+            <p className="feature-desc">Integrated with leading Oracle networks (Pyth/Switchboard) to ensure split-second accuracy for settlement and pricing, immune to local market manipulation.</p>
+          </div>
+          <div className="feature-card">
+            <h3 className="feature-title">Permissionless Yield</h3>
+            <p className="feature-desc">Liquidity isn't monopolized by market makers. Anyone can step in to write options, provide liquidity, and capture real yields from market premiums directly on-chain.</p>
+          </div>
+        </div>
+
+        <div className="section-title" style={{ textAlign: 'center', marginTop: '6rem', marginBottom: '3rem' }}>SUPPORTED MARKETS</div>
+        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h2 className="section-heading" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Trade Anything. Settle in USDC.</h2>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '800px' }}>
+            {['Tokenized Equities (AAPL, TSLA)', 'Crypto Majors (BTC, SOL)', 'Foreign Exchange (EUR, JPY)', 'Commodities (GLD, SLV)'].map(market => (
+              <span key={market} style={{ padding: '0.75rem 1.5rem', backgroundColor: 'rgba(94, 234, 212, 0.1)', color: '#5EEAD4', border: '1px solid rgba(94, 234, 212, 0.3)', borderRadius: '30px', fontFamily: "'Space Mono', monospace", fontSize: '0.9rem' }}>
+                {market}
+              </span>
+            ))}
+          </div>
+          <p className="section-text" style={{ marginTop: '2rem', textAlign: 'center', maxWidth: '700px' }}>
+            Our dynamic Oracle architecture allows us to list any asset that has reliable price feeds. New markets are added continuously without fragmenting liquidity.
+          </p>
+        </div>
+
+        <div className="section-title" style={{ textAlign: 'center', marginTop: '6rem', marginBottom: '3rem' }}>ROADMAP</div>
+        <div className="feature-cards">
+          <div className="feature-card">
+            <h3 className="feature-title" style={{ color: '#5EEAD4' }}>PHASE I: Genesis</h3>
+            <p className="feature-desc">
+              - Core Options Protocol on Devnet<br/>
+              - Pro-Trading Terminal UI<br/>
+              - Devnet Faucet & Testing<br/>
+              - Mainnet Beta Launch
+            </p>
+          </div>
+          <div className="feature-card">
+            <h3 className="feature-title" style={{ color: '#5EEAD4' }}>PHASE II: Expansion</h3>
+            <p className="feature-desc">
+              - Perpetual Futures (Perps) Integration<br/>
+              - Shared Liquidity Pools (LP)<br/>
+              - Forex & Commodities Markets<br/>
+              - Mobile Optimized Interface
+            </p>
+          </div>
+          <div className="feature-card">
+            <h3 className="feature-title" style={{ color: '#5EEAD4' }}>PHASE III: Decentralization</h3>
+            <p className="feature-desc">
+              - DAO Governance (SPL Token)<br/>
+              - Cross-chain Margin Accounts<br/>
+              - Vault Strategy Automation<br/>
+              - Institutional API Access
+            </p>
           </div>
         </div>
       </section>
+
+      <footer style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)', padding: '4rem 10vw', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '2rem', position: 'relative', zIndex: 2, backgroundColor: 'rgba(10, 10, 10, 0.8)', backdropFilter: 'blur(10px)' }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 'bold', fontSize: '1.2rem', color: '#5EEAD4' }}>
+          STABLEPERP
+        </div>
+        <div style={{ display: 'flex', gap: '2rem', fontFamily: "'Space Mono', monospace", fontSize: '0.85rem' }}>
+          <a href="#" style={{ color: '#A3A3A3', textDecoration: 'none' }}>Documentation</a>
+          <a href="#" style={{ color: '#A3A3A3', textDecoration: 'none' }}>Terms & Conditions</a>
+          <a href="#" style={{ color: '#A3A3A3', textDecoration: 'none' }}>Privacy Policy</a>
+          <a href="#" style={{ color: '#A3A3A3', textDecoration: 'none' }}>GitHub</a>
+        </div>
+        <div style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>
+          © 2026 Stableperp Protocol. Built on Solana.
+        </div>
+      </footer>
     </>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<><Navbar variant="landing" /><Landing /></>} />
+      <Route path="/terminal" element={<><Navbar variant="terminal" /><Terminal /></>} />
+    </Routes>
   );
 }
 

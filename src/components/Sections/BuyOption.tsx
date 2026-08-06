@@ -8,13 +8,13 @@ import { PayoffChart } from './PayoffChart';
 
 const inputStyle = {
   width: '100%',
-  padding: '0.75rem 1rem',
+  padding: '0.5rem 0.75rem',
   backgroundColor: 'rgba(0,0,0,0.5)',
   border: '1px solid rgba(255,255,255,0.1)',
   borderRadius: '8px',
   color: '#FFF',
   fontFamily: "'Space Mono', monospace",
-  fontSize: '0.9rem',
+  fontSize: '0.875rem',
   outline: 'none',
   marginBottom: '1.5rem',
   boxSizing: 'border-box' as const
@@ -137,14 +137,14 @@ export const BuyOption: FC = () => {
 
       <button type="submit" disabled={loading} style={{
         width: '100%',
-        padding: '1rem',
+        padding: '0.625rem 1rem',
         backgroundColor: loading ? 'rgba(94, 234, 212, 0.05)' : 'rgba(94, 234, 212, 0.1)',
         color: '#5EEAD4',
         border: '1px solid #5EEAD4',
         borderRadius: '8px',
         fontFamily: "'Space Mono', monospace",
         fontWeight: 'bold',
-        fontSize: '1rem',
+        fontSize: '0.875rem',
         cursor: loading ? 'not-allowed' : 'pointer',
         transition: 'all 0.2s',
       }}
