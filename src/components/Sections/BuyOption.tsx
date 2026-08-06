@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import type { FC } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 import { PayoffChart } from './PayoffChart';
+import { getOrCreateATAInstruction } from '../../utils/token';
+
+interface BuyOptionProps {
+  market: any | null;
+}
 
 const inputStyle = {
   width: '100%',
@@ -29,14 +34,16 @@ const labelStyle = {
   letterSpacing: '0.05em'
 };
 
-export const BuyOption: FC = () => {
+export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
   const [qty, setQty] = useState('');
   const [loading, setLoading] = useState(false);
   const { publicKey } = useWallet();
+  const { connection } = useConnection();
   const program = useStableperpProgram();
 
-  const premiumPerOption = 5.00;
+  const premiumPerOption = market && market.premiumAsk ? market.premiumAsk : 0;
   const quantity = parseFloat(qty) || 0;
+  // A small dummy network fee just for UI demonstration
   const networkFee = 0.01;
   const totalCost = (quantity * premiumPerOption) + (quantity > 0 ? networkFee : 0);
 
@@ -53,27 +60,44 @@ export const BuyOption: FC = () => {
     setLoading(true);
 
     try {
-      // Create dummy accounts for the demo
-      const market = PublicKey.unique();
-      const optionMint = PublicKey.unique();
-      const quoteMint = PublicKey.unique();
-      const writerPosition = PublicKey.unique();
+      if (!market) throw new Error("No market selected.");
+
+      const marketPubkey = new PublicKey(market.id);
+      const optionMint = new PublicKey(market.optionMint);
+      const quoteMint = new PublicKey(market.quoteMint);
+      const writerPosition = PublicKey.unique(); // In a real app, you'd fetch the lowest ask writer position
       
       const [escrowOptionVault] = PublicKey.findProgramAddressSync(
         [Buffer.from('escrow'), writerPosition.toBuffer()],
         program.programId
       );
 
-      // Dummy accounts just for compilation
+      // In a real app, writerQuoteAta would be fetched from writerPosition data
       const writerQuoteAta = PublicKey.unique();
-      const buyerOptionAta = PublicKey.unique();
-      const buyerQuoteAta = PublicKey.unique();
 
-      // Call the program method
-      const tx = await program.methods.buyOption(
+      // Create ATAs for buyer if they don't exist
+      const { ata: buyerOptionAta, instruction: createBuyerOptionAtaIx } = await getOrCreateATAInstruction(
+        connection,
+        publicKey,
+        optionMint,
+        publicKey // owner is the buyer
+      );
+
+      const { ata: buyerQuoteAta, instruction: createBuyerQuoteAtaIx } = await getOrCreateATAInstruction(
+        connection,
+        publicKey,
+        quoteMint,
+        publicKey // owner is the buyer
+      );
+
+      const transaction = new anchor.web3.Transaction();
+      if (createBuyerOptionAtaIx) transaction.add(createBuyerOptionAtaIx);
+      if (createBuyerQuoteAtaIx) transaction.add(createBuyerQuoteAtaIx);
+
+      const buyOptionIx = await program.methods.buyOption(
         new anchor.BN(quantity)
       ).accounts({
-        market,
+        market: marketPubkey,
         writerPosition,
         escrowOptionVault,
         writerQuoteAta,
@@ -85,9 +109,12 @@ export const BuyOption: FC = () => {
         tokenProgram: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
         associatedTokenProgram: new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'),
         systemProgram: SystemProgram.programId,
-      }).rpc();
+      }).instruction();
 
-      alert(`Transaction successful! TX: ${tx}`);
+      transaction.add(buyOptionIx);
+
+      const signature = await program.provider.sendAndConfirm!(transaction, []);
+      alert(`Transaction successful! TX: ${signature}`);
       setQty('');
     } catch (err: any) {
       console.error(err);
@@ -101,12 +128,16 @@ export const BuyOption: FC = () => {
     <form onSubmit={handleTrade} style={{ fontFamily: "'Space Mono', monospace" }}>
       <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Selected Market</span>
-          <span style={{ color: '#5EEAD4', fontSize: '0.85rem' }}>MKT-001 (AAPLx CALL)</span>
+          <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Asset</span>
+          <span style={{ color: '#FFF', fontSize: '0.85rem' }}>{market ? market.symbol : '-'}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Available USDC</span>
-          <span style={{ color: '#FFF', fontSize: '0.85rem' }}>1,500.00 USDC</span>
+          <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Strike</span>
+          <span style={{ color: '#FFF', fontSize: '0.85rem' }}>{market ? `$${market.strike}` : '-'}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Available Quote Balance</span>
+          <span style={{ color: '#5EEAD4', fontSize: '0.85rem' }}>-</span>
         </div>
       </div>
 

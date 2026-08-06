@@ -3,15 +3,24 @@ import { Program, AnchorProvider } from '@coral-xyz/anchor';
 import type { Idl } from '@coral-xyz/anchor';
 import { useMemo } from 'react';
 import stableperpIdl from '../idl/stableperp.json';
+import { PublicKey } from '@solana/web3.js';
+
+// Dummy wallet for read-only mode
+const dummyWallet = {
+  publicKey: PublicKey.default,
+  signTransaction: () => Promise.reject(),
+  signAllTransactions: () => Promise.reject(),
+};
 
 export function useStableperpProgram() {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
 
   const program = useMemo(() => {
-    if (!wallet) return null;
-
-    const provider = new AnchorProvider(connection, wallet, {
+    // If no wallet is connected, use dummyWallet for read-only mode
+    const activeWallet = wallet || dummyWallet;
+    
+    const provider = new AnchorProvider(connection, activeWallet as any, {
       preflightCommitment: 'processed',
     });
     

@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FC } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 import { PayoffChart } from './PayoffChart';
+import { getOrCreateATAInstruction } from '../../utils/token';
+
+interface WriteOptionProps {
+  market: any | null;
+}
 
 const inputStyle = {
   width: '100%',
@@ -29,13 +34,14 @@ const labelStyle = {
   letterSpacing: '0.05em'
 };
 
-export const WriteOption: FC = () => {
+export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
   const [qty, setQty] = useState('');
   const [strike, setStrike] = useState('');
   const [expiry, setExpiry] = useState('');
   const [premium, setPremium] = useState('');
   const [loading, setLoading] = useState(false);
   const { publicKey } = useWallet();
+  const { connection } = useConnection();
   const program = useStableperpProgram();
 
   const handleWrite = async (e: React.FormEvent) => {
@@ -54,10 +60,11 @@ export const WriteOption: FC = () => {
     setLoading(true);
 
     try {
-      // Create dummy accounts for the demo
-      const market = PublicKey.unique();
-      const optionMint = PublicKey.unique();
-      const underlyingMint = PublicKey.unique();
+      if (!market) throw new Error("No market selected.");
+
+      const marketPubkey = new PublicKey(market.id);
+      const optionMint = new PublicKey(market.optionMint);
+      const underlyingMint = new PublicKey(market.underlyingMint);
       
       const [writerPosition] = PublicKey.findProgramAddressSync(
         [Buffer.from('writer'), market.toBuffer(), publicKey.toBuffer()],
@@ -69,16 +76,32 @@ export const WriteOption: FC = () => {
         program.programId
       );
 
-      // Dummy collateral vault just for compilation
-      const collateralVault = PublicKey.unique();
-      const writerUnderlyingAta = PublicKey.unique();
+      // Create ATAs if they don't exist
+      const { ata: writerUnderlyingAta, instruction: createWriterUnderlyingAtaIx } = await getOrCreateATAInstruction(
+        connection,
+        publicKey,
+        underlyingMint,
+        publicKey // owner is the writer
+      );
 
-      // Call the program method
-      const tx = await program.methods.writeOption(
+      const { ata: collateralVault, instruction: createCollateralVaultIx } = await getOrCreateATAInstruction(
+        connection,
+        publicKey,
+        underlyingMint,
+        marketPubkey // owner is the market PDA
+      );
+
+      // We should check if the option mint exists, but we assume MarketList provided it correctly
+
+      const transaction = new anchor.web3.Transaction();
+      if (createWriterUnderlyingAtaIx) transaction.add(createWriterUnderlyingAtaIx);
+      if (createCollateralVaultIx) transaction.add(createCollateralVaultIx);
+
+      const writeOptionIx = await program.methods.writeOption(
         new anchor.BN(quantity), 
         new anchor.BN(premiumPrice)
       ).accounts({
-        market,
+        market: marketPubkey,
         writerPosition,
         collateralVault,
         writerUnderlyingAta,
@@ -89,9 +112,12 @@ export const WriteOption: FC = () => {
         tokenProgram: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
         associatedTokenProgram: new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'),
         systemProgram: SystemProgram.programId,
-      }).rpc();
+      }).instruction();
 
-      alert(`Transaction successful! TX: ${tx}`);
+      transaction.add(writeOptionIx);
+
+      const signature = await program.provider.sendAndConfirm!(transaction, []);
+      alert(`Transaction successful! TX: ${signature}`);
       setQty('');
       setPremium('');
     } catch (err: any) {
@@ -107,11 +133,15 @@ export const WriteOption: FC = () => {
       <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
           <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Asset</span>
-          <span style={{ color: '#FFF', fontSize: '0.85rem' }}>AAPLx</span>
+          <span style={{ color: '#FFF', fontSize: '0.85rem' }}>{market ? market.symbol : '-'}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Strike</span>
+          <span style={{ color: '#FFF', fontSize: '0.85rem' }}>{market ? `$${market.strike}` : '-'}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
           <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Available Balance</span>
-          <span style={{ color: '#5EEAD4', fontSize: '0.85rem' }}>500.00 AAPLx</span>
+          <span style={{ color: '#5EEAD4', fontSize: '0.85rem' }}>-</span>
         </div>
       </div>
 

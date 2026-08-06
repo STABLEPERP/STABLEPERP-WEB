@@ -2,10 +2,15 @@ import { useState } from 'react';
 import { MarketList } from '../components/Sections/MarketList';
 import { WriteOption } from '../components/Sections/WriteOption';
 import { BuyOption } from '../components/Sections/BuyOption';
-import { LightweightChart } from '../components/LightweightChart';
+import { TradingViewChart } from '../components/TradingViewChart';
+import { UserPositions } from '../components/Sections/UserPositions';
+import { AssetList, type Asset } from '../components/Sections/AssetList';
 
 export function Terminal() {
   const [orderTab, setOrderTab] = useState<'buy' | 'write'>('buy');
+  const [bottomTab, setBottomTab] = useState<'chain' | 'positions'>('chain');
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [selectedMarket, setSelectedMarket] = useState<any | null>(null);
 
   return (
     <div style={{
@@ -32,7 +37,7 @@ export function Terminal() {
       }}>
         <div style={{ padding: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', fontSize: '0.75rem', color: '#A3A3A3', letterSpacing: '0.1em' }}>MARKETS</div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
-          <MarketList />
+          <AssetList onSelectAsset={setSelectedAsset} selectedAssetId={selectedAsset?.id} />
         </div>
       </div>
 
@@ -48,16 +53,18 @@ export function Terminal() {
       }}>
         <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFF' }}>AAPLx</span>
-            <span style={{ fontSize: '0.875rem', color: '#A3A3A3', marginLeft: '0.5rem' }}>Apple Inc.</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFF' }}>{selectedAsset ? selectedAsset.symbol : 'Select Asset'}</span>
+            <span style={{ fontSize: '0.875rem', color: '#A3A3A3', marginLeft: '0.5rem' }}>{selectedAsset ? 'Perpetual Options' : ''}</span>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#FFF' }}>$185.92</div>
-            <div style={{ fontSize: '0.875rem', color: '#5EEAD4' }}>+1.24%</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#FFF' }}>{selectedAsset ? `$${selectedAsset.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}</div>
+            <div style={{ fontSize: '0.875rem', color: selectedAsset && selectedAsset.change24h >= 0 ? '#5EEAD4' : '#F87171' }}>
+              {selectedAsset ? `${selectedAsset.change24h >= 0 ? '+' : ''}${selectedAsset.change24h}%` : '-'}
+            </div>
           </div>
         </div>
         <div style={{ flex: 1, padding: '1rem', minHeight: 0 }}>
-          <LightweightChart />
+          <TradingViewChart symbol={selectedAsset?.symbol ?? 'BTC'} />
         </div>
       </div>
 
@@ -72,10 +79,25 @@ export function Terminal() {
         flexDirection: 'column',
         backdropFilter: 'blur(16px)',
       }}>
-        <div style={{ fontSize: '0.75rem', color: '#A3A3A3', letterSpacing: '0.1em', marginBottom: '1rem' }}>POSITIONS & OPTION CHAIN</div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#525252', fontSize: '0.875rem' }}>
-          No open positions. Click a strike in the chain to build a trade.
+        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', marginBottom: '0.5rem' }}>
+          <button 
+            onClick={() => setBottomTab('chain')}
+            style={{ padding: '0.75rem 1rem', backgroundColor: 'transparent', color: bottomTab === 'chain' ? '#5EEAD4' : '#A3A3A3', border: 'none', borderBottom: bottomTab === 'chain' ? '2px solid #5EEAD4' : '2px solid transparent', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.1em' }}
+          >
+            OPTION CHAIN
+          </button>
+          <button 
+            onClick={() => setBottomTab('positions')}
+            style={{ padding: '0.75rem 1rem', backgroundColor: 'transparent', color: bottomTab === 'positions' ? '#5EEAD4' : '#A3A3A3', border: 'none', borderBottom: bottomTab === 'positions' ? '2px solid #5EEAD4' : '2px solid transparent', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.1em' }}
+          >
+            OPEN POSITIONS
+          </button>
         </div>
+        {bottomTab === 'chain' ? (
+          <MarketList onSelectMarket={setSelectedMarket} selectedMarketId={selectedMarket?.id} filterAssetSymbol={selectedAsset?.symbol} />
+        ) : (
+          <UserPositions />
+        )}
       </div>
 
       {/* RIGHT SIDEBAR: ORDER ENTRY */}
@@ -104,7 +126,7 @@ export function Terminal() {
           </button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
-          {orderTab === 'buy' ? <BuyOption /> : <WriteOption />}
+          {orderTab === 'buy' ? <BuyOption market={selectedMarket} /> : <WriteOption market={selectedMarket} />}
         </div>
       </div>
     </div>
