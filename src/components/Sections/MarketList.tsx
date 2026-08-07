@@ -72,9 +72,9 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
           const symbol = isBTC ? 'BTC/USDC' : isETH ? 'ETH/USDC' : 'SOL/USDC';
 
           const marketLiquidity = liquidityMap[marketId];
-          const totalLiquidity = marketLiquidity ? marketLiquidity.totalLiquidity : 0;
+          const totalLiquidity = marketLiquidity ? marketLiquidity.totalLiquidity / (10 ** 9) : 0;
           const premiumAsk = marketLiquidity && marketLiquidity.lowestPremium !== Infinity 
-            ? marketLiquidity.lowestPremium 
+            ? marketLiquidity.lowestPremium / (10 ** 6)
             : 0;
 
           return {

@@ -64,8 +64,8 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
 
   const handleWrite = async (e: React.FormEvent) => {
     e.preventDefault();
-    const quantity = parseFloat(qty);
-    const premiumPrice = parseFloat(premium);
+    const quantity = parseFloat(qty) * 10 ** 9;
+    const premiumPrice = parseFloat(premium) * 10 ** 6;
     
     if (isNaN(quantity) || quantity <= 0 || isNaN(premiumPrice) || premiumPrice <= 0) {
       alert('Please enter a valid quantity and premium.');

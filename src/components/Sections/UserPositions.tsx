@@ -111,7 +111,7 @@ export const UserPositions: FC = () => {
             market,
             symbol,
             strike,
-            size: wp.account.mintedAmount.toNumber(),
+            size: wp.account.mintedAmount.toNumber() / (10 ** 9),
             pnl: null, // Calculated reactively from live prices
           };
         });
@@ -126,7 +126,7 @@ export const UserPositions: FC = () => {
         for (const ta of tokenAccounts.value) {
           const accountData = ta.account.data.parsed.info;
           const mint = accountData.mint;
-          const amount = parseInt(accountData.tokenAmount.amount);
+          const amount = accountData.tokenAmount.uiAmount;
 
           if (amount > 0) {
             const matchingMarket = markets.find(

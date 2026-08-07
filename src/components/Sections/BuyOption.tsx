@@ -62,8 +62,8 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
   }, [publicKey, market, connection]);
 
   const premiumPerOption = market && market.premiumAsk ? market.premiumAsk : 0;
-  const quantity = parseFloat(qty) || 0;
-  const totalCost = quantity * premiumPerOption;
+  const quantity = (parseFloat(qty) * 10 ** 9) || 0;
+  const totalCost = (quantity / 10 ** 9) * premiumPerOption;
 
   const handleTrade = async (e: React.FormEvent) => {
     e.preventDefault();
