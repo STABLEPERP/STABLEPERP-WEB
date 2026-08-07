@@ -6,6 +6,7 @@ import { PublicKey, SystemProgram } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 import { PayoffChart } from './PayoffChart';
 import { getOrCreateATAInstruction } from '../../utils/token';
+import { TxModal } from '../common/TxModal';
 
 interface WriteOptionProps {
   market: any | null;
@@ -38,6 +39,12 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
   const [qty, setQty] = useState('');
   const [premium, setPremium] = useState('');
   const [loading, setLoading] = useState(false);
+  const [modalState, setModalState] = useState<{ isOpen: boolean; type: 'success' | 'error' | 'info'; title: string; message: string; txSignature?: string }>({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
   const { publicKey } = useWallet();
   const { connection } = useConnection();
   const program = useStableperpProgram();
@@ -68,11 +75,11 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
     const premiumPrice = parseFloat(premium) * 10 ** 6;
     
     if (isNaN(quantity) || quantity <= 0 || isNaN(premiumPrice) || premiumPrice <= 0) {
-      alert('Please enter a valid quantity and premium.');
+      setModalState({ isOpen: true, type: 'error', title: 'Invalid Input', message: 'Please enter a valid quantity and premium.' });
       return;
     }
     if (!publicKey || !program) {
-      alert('Please connect your wallet first.');
+      setModalState({ isOpen: true, type: 'error', title: 'Wallet Not Connected', message: 'Please connect your wallet first.' });
       return;
     }
     setLoading(true);
@@ -141,7 +148,13 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
 
       const signature = await program.provider.sendAndConfirm!(transaction, []);
       console.log('✅ Transaction successful! TX Signature:', signature);
-      alert(`Transaction successful!\nTX: ${signature}\n\n(Signature has been printed to console for copying)`);
+      setModalState({ 
+        isOpen: true, 
+        type: 'success', 
+        title: 'Transaction Successful', 
+        message: 'Your option has been successfully written and the market pool has been funded!', 
+        txSignature: signature 
+      });
       setQty('');
       setPremium('');
     } catch (err: any) {
@@ -154,7 +167,12 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
           console.error('❌ Program Logs:', logs);
         } catch(e) {}
       }
-      alert('Transaction failed! Please ensure you have sufficient Collateral (Asset) and Solana for gas fees.');
+      setModalState({ 
+        isOpen: true, 
+        type: 'error', 
+        title: 'Transaction Failed', 
+        message: 'Transaction failed! Please ensure you have sufficient Collateral (Asset) and Solana for gas fees.' 
+      });
     } finally {
       setLoading(false);
     }
@@ -241,6 +259,14 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
       >
         {loading ? 'WAITING FOR WALLET...' : 'MINT OPTION'}
       </button>
+      <TxModal
+        isOpen={modalState.isOpen}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        txSignature={modalState.txSignature}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+      />
     </form>
   );
 };

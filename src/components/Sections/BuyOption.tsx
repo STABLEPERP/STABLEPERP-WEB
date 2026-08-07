@@ -6,6 +6,7 @@ import { PublicKey, SystemProgram } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 import { PayoffChart } from './PayoffChart';
 import { getOrCreateATAInstruction } from '../../utils/token';
+import { TxModal } from '../common/TxModal';
 
 interface BuyOptionProps {
   market: any | null;
@@ -37,6 +38,12 @@ const labelStyle = {
 export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
   const [qty, setQty] = useState('');
   const [loading, setLoading] = useState(false);
+  const [modalState, setModalState] = useState<{ isOpen: boolean; type: 'success' | 'error' | 'info'; title: string; message: string; txSignature?: string }>({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
   const { publicKey } = useWallet();
   const { connection } = useConnection();
   const program = useStableperpProgram();
@@ -68,11 +75,11 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
   const handleTrade = async (e: React.FormEvent) => {
     e.preventDefault();
     if (quantity <= 0) {
-      alert('Please enter a valid quantity.');
+      setModalState({ isOpen: true, type: 'error', title: 'Invalid Input', message: 'Please enter a valid quantity.' });
       return;
     }
     if (!publicKey || !program) {
-      alert('Please connect your wallet first.');
+      setModalState({ isOpen: true, type: 'error', title: 'Wallet Not Connected', message: 'Please connect your wallet first.' });
       return;
     }
     setLoading(true);
@@ -96,7 +103,12 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
       // Check if writer position is initialized before buying
       const writerPosInfo = await connection.getAccountInfo(writerPosition);
       if (!writerPosInfo) {
-        alert("Writer Position not initialized!\n\nFor this devnet testing phase, the buyer buys from their own writer pool. Please go to the 'Write Option' tab and write an option first to initialize your pool.");
+        setModalState({ 
+          isOpen: true, 
+          type: 'info', 
+          title: 'Pool Not Initialized', 
+          message: "Writer Position not initialized!\n\nFor this devnet testing phase, the buyer buys from their own writer pool. Please go to the 'Write Option' tab and write an option first to initialize your pool." 
+        });
         setLoading(false);
         return;
       }
@@ -143,7 +155,13 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
 
       const signature = await program.provider.sendAndConfirm!(transaction, []);
       console.log('✅ Transaction successful! TX Signature:', signature);
-      alert(`Transaction successful!\nTX: ${signature}\n\n(Signature has been printed to console for copying)`);
+      setModalState({ 
+        isOpen: true, 
+        type: 'success', 
+        title: 'Transaction Successful', 
+        message: 'Your option has been successfully purchased!', 
+        txSignature: signature 
+      });
       setQty('');
     } catch (err: any) {
       console.error('❌ Transaction error details:', err.message || err);
@@ -155,7 +173,12 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
           console.error('❌ Program Logs:', logs);
         } catch(e) {}
       }
-      alert('Transaction failed! Please ensure you have sufficient USDC balance and Solana for gas fees.');
+      setModalState({ 
+        isOpen: true, 
+        type: 'error', 
+        title: 'Transaction Failed', 
+        message: 'Transaction failed! Please ensure you have sufficient USDC balance and Solana for gas fees.' 
+      });
     } finally {
       setLoading(false);
     }
@@ -229,6 +252,14 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
       >
         {loading ? 'WAITING FOR WALLET...' : 'EXECUTE TRADE'}
       </button>
+      <TxModal
+        isOpen={modalState.isOpen}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        txSignature={modalState.txSignature}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+      />
     </form>
   );
 };
