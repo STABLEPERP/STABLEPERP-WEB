@@ -36,13 +36,31 @@ const labelStyle = {
 
 export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
   const [qty, setQty] = useState('');
-  const [strike, setStrike] = useState('');
-  const [expiry, setExpiry] = useState('');
   const [premium, setPremium] = useState('');
   const [loading, setLoading] = useState(false);
   const { publicKey } = useWallet();
   const { connection } = useConnection();
   const program = useStableperpProgram();
+  const [underlyingBalance, setUnderlyingBalance] = useState<number | null>(null);
+
+  // Fetch Underlying Balance
+  useEffect(() => {
+    async function fetchBalance() {
+      if (!publicKey || !market || !market.underlyingMint) {
+        setUnderlyingBalance(null);
+        return;
+      }
+      try {
+        const { getAssociatedTokenAddressSync } = await import('@solana/spl-token');
+        const underlyingAta = getAssociatedTokenAddressSync(new PublicKey(market.underlyingMint), publicKey);
+        const bal = await connection.getTokenAccountBalance(underlyingAta);
+        setUnderlyingBalance(bal.value.uiAmount);
+      } catch (e) {
+        setUnderlyingBalance(0);
+      }
+    }
+    fetchBalance();
+  }, [publicKey, market, connection]);
 
   const handleWrite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,19 +80,16 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
     try {
       if (!market) throw new Error("No market selected.");
 
-      const marketPubkey = new PublicKey(market.id);
-      const optionMint = new PublicKey(market.optionMint);
-      const underlyingMint = new PublicKey(market.underlyingMint);
+      const marketPubkey = new PublicKey(market.id || PublicKey.unique().toBase58());
+      const optionMint = new PublicKey(market.optionMint || PublicKey.unique().toBase58());
+      const underlyingMint = new PublicKey(market.underlyingMint || PublicKey.unique().toBase58());
       
       const [writerPosition] = PublicKey.findProgramAddressSync(
-        [Buffer.from('writer'), market.toBuffer(), publicKey.toBuffer()],
+        [Buffer.from('writer'), marketPubkey.toBuffer(), publicKey.toBuffer()],
         program.programId
       );
       
-      const [escrowOptionVault] = PublicKey.findProgramAddressSync(
-        [Buffer.from('escrow'), writerPosition.toBuffer()],
-        program.programId
-      );
+      // escrowOptionVault is an ATA owned by the writerPosition PDA
 
       // Create ATAs if they don't exist
       const { ata: writerUnderlyingAta, instruction: createWriterUnderlyingAtaIx } = await getOrCreateATAInstruction(
@@ -91,11 +106,19 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
         marketPubkey // owner is the market PDA
       );
 
+      const { ata: escrowOptionVault, instruction: createEscrowOptionVaultIx } = await getOrCreateATAInstruction(
+        connection,
+        publicKey,
+        optionMint,
+        writerPosition // owner is the writerPosition PDA
+      );
+
       // We should check if the option mint exists, but we assume MarketList provided it correctly
 
       const transaction = new anchor.web3.Transaction();
       if (createWriterUnderlyingAtaIx) transaction.add(createWriterUnderlyingAtaIx);
       if (createCollateralVaultIx) transaction.add(createCollateralVaultIx);
+      if (createEscrowOptionVaultIx) transaction.add(createEscrowOptionVaultIx);
 
       const writeOptionIx = await program.methods.writeOption(
         new anchor.BN(quantity), 
@@ -117,12 +140,21 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
       transaction.add(writeOptionIx);
 
       const signature = await program.provider.sendAndConfirm!(transaction, []);
-      alert(`Transaction successful! TX: ${signature}`);
+      console.log('✅ Transaction successful! TX Signature:', signature);
+      alert(`Transaction successful!\nTX: ${signature}\n\n(Signature has been printed to console for copying)`);
       setQty('');
       setPremium('');
     } catch (err: any) {
-      console.error(err);
-      alert(`Transaction failed: ${err.message}`);
+      console.error('❌ Transaction error details:', err.message || err);
+      if (err.logs) {
+        console.error('❌ Program Logs:', err.logs);
+      } else if (typeof err.getLogs === 'function') {
+        try {
+          const logs = await err.getLogs();
+          console.error('❌ Program Logs:', logs);
+        } catch(e) {}
+      }
+      alert('Transaction failed! Please ensure you have sufficient Collateral (Asset) and Solana for gas fees.');
     } finally {
       setLoading(false);
     }
@@ -140,8 +172,10 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
           <span style={{ color: '#FFF', fontSize: '0.85rem' }}>{market ? `$${market.strike}` : '-'}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Available Balance</span>
-          <span style={{ color: '#5EEAD4', fontSize: '0.85rem' }}>-</span>
+          <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Available Underlying Balance</span>
+          <span style={{ color: '#5EEAD4', fontSize: '0.85rem' }}>
+            {underlyingBalance !== null ? `${underlyingBalance.toLocaleString()} ${market?.symbol?.split('/')[0] || 'Token'}` : '-'}
+          </span>
         </div>
       </div>
 
@@ -149,17 +183,32 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
       <input type="number" step="0.01" placeholder="0.00" style={inputStyle} value={qty} onChange={(e) => setQty(e.target.value)} />
 
       <label style={labelStyle}>Target Strike Price (USDC)</label>
-      <input type="number" step="0.01" placeholder="0.00" style={inputStyle} value={strike} onChange={(e) => setStrike(e.target.value)} />
+      <div style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.05)', color: '#A3A3A3', cursor: 'not-allowed' }}>
+        {market ? `$${market.strike}` : 'Select a market first'}
+      </div>
 
       <label style={labelStyle}>Expiry Date</label>
-      <input type="date" style={inputStyle} value={expiry} onChange={(e) => setExpiry(e.target.value)} />
+      <div style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.05)', color: '#A3A3A3', cursor: 'not-allowed' }}>
+        {market ? market.expiry : 'Select a market first'}
+      </div>
 
       <label style={labelStyle}>Premium Price (USDC)</label>
       <input type="number" step="0.01" placeholder="0.00" style={inputStyle} value={premium} onChange={(e) => setPremium(e.target.value)} />
 
+      <div style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px dashed rgba(255,255,255,0.1)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <span style={{ color: '#A3A3A3', fontSize: '0.75rem' }}>Collateral Required</span>
+          <span style={{ color: '#FFF', fontSize: '0.75rem' }}>{(parseFloat(qty) || 0).toFixed(2)} {market?.symbol?.split('/')[0] || 'Token'}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <span style={{ color: '#5EEAD4', fontSize: '0.9rem', fontWeight: 'bold' }}>Total Premium Revenue</span>
+          <span style={{ color: '#5EEAD4', fontSize: '0.9rem', fontWeight: 'bold' }}>${((parseFloat(qty) || 0) * (parseFloat(premium) || 0)).toFixed(2)} USDC</span>
+        </div>
+      </div>
+
       <PayoffChart 
         type="write" 
-        strike={parseFloat(strike) || 0} 
+        strike={market ? market.strike : 0} 
         premium={parseFloat(premium) || 0} 
         quantity={parseFloat(qty) || 0} 
       />

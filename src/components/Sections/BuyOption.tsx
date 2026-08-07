@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FC } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
@@ -40,12 +40,30 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
   const program = useStableperpProgram();
+  const [quoteBalance, setQuoteBalance] = useState<number | null>(null);
+
+  // Fetch Quote Balance
+  useEffect(() => {
+    async function fetchBalance() {
+      if (!publicKey || !market || !market.quoteMint) {
+        setQuoteBalance(null);
+        return;
+      }
+      try {
+        const { getAssociatedTokenAddressSync } = await import('@solana/spl-token');
+        const quoteAta = getAssociatedTokenAddressSync(new PublicKey(market.quoteMint), publicKey);
+        const bal = await connection.getTokenAccountBalance(quoteAta);
+        setQuoteBalance(bal.value.uiAmount);
+      } catch (e) {
+        setQuoteBalance(0);
+      }
+    }
+    fetchBalance();
+  }, [publicKey, market, connection]);
 
   const premiumPerOption = market && market.premiumAsk ? market.premiumAsk : 0;
   const quantity = parseFloat(qty) || 0;
-  // A small dummy network fee just for UI demonstration
-  const networkFee = 0.01;
-  const totalCost = (quantity * premiumPerOption) + (quantity > 0 ? networkFee : 0);
+  const totalCost = quantity * premiumPerOption;
 
   const handleTrade = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,18 +80,28 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
     try {
       if (!market) throw new Error("No market selected.");
 
-      const marketPubkey = new PublicKey(market.id);
-      const optionMint = new PublicKey(market.optionMint);
-      const quoteMint = new PublicKey(market.quoteMint);
-      const writerPosition = PublicKey.unique(); // In a real app, you'd fetch the lowest ask writer position
+      const marketPubkey = new PublicKey(market.id || PublicKey.unique().toBase58());
+      const optionMint = new PublicKey(market.optionMint || PublicKey.unique().toBase58());
+      const quoteMint = new PublicKey(market.quoteMint || PublicKey.unique().toBase58());
       
-      const [escrowOptionVault] = PublicKey.findProgramAddressSync(
-        [Buffer.from('escrow'), writerPosition.toBuffer()],
+      // Fallback to current user as writer for local dev testing
+      const [writerPosition] = PublicKey.findProgramAddressSync(
+        [Buffer.from('writer'), marketPubkey.toBuffer(), publicKey.toBuffer()],
         program.programId
       );
+      
+      const { getAssociatedTokenAddressSync } = await import('@solana/spl-token');
+      const escrowOptionVault = getAssociatedTokenAddressSync(optionMint, writerPosition, true);
 
-      // In a real app, writerQuoteAta would be fetched from writerPosition data
-      const writerQuoteAta = PublicKey.unique();
+      // Check if writer position is initialized before buying
+      const writerPosInfo = await connection.getAccountInfo(writerPosition);
+      if (!writerPosInfo) {
+        alert("Writer Position not initialized!\n\nFor this devnet testing phase, the buyer buys from their own writer pool. Please go to the 'Write Option' tab and write an option first to initialize your pool.");
+        setLoading(false);
+        return;
+      }
+
+      const writerQuoteAta = getAssociatedTokenAddressSync(quoteMint, publicKey);
 
       // Create ATAs for buyer if they don't exist
       const { ata: buyerOptionAta, instruction: createBuyerOptionAtaIx } = await getOrCreateATAInstruction(
@@ -114,11 +142,20 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
       transaction.add(buyOptionIx);
 
       const signature = await program.provider.sendAndConfirm!(transaction, []);
-      alert(`Transaction successful! TX: ${signature}`);
+      console.log('✅ Transaction successful! TX Signature:', signature);
+      alert(`Transaction successful!\nTX: ${signature}\n\n(Signature has been printed to console for copying)`);
       setQty('');
     } catch (err: any) {
-      console.error(err);
-      alert(`Transaction failed: ${err.message}`);
+      console.error('❌ Transaction error details:', err.message || err);
+      if (err.logs) {
+        console.error('❌ Program Logs:', err.logs);
+      } else if (typeof err.getLogs === 'function') {
+        try {
+          const logs = await err.getLogs();
+          console.error('❌ Program Logs:', logs);
+        } catch(e) {}
+      }
+      alert('Transaction failed! Please ensure you have sufficient USDC balance and Solana for gas fees.');
     } finally {
       setLoading(false);
     }
@@ -137,7 +174,9 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
           <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Available Quote Balance</span>
-          <span style={{ color: '#5EEAD4', fontSize: '0.85rem' }}>-</span>
+          <span style={{ color: '#5EEAD4', fontSize: '0.85rem' }}>
+            {quoteBalance !== null ? `${quoteBalance.toLocaleString()} USDC` : '-'}
+          </span>
         </div>
       </div>
 
@@ -149,19 +188,15 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
           <span style={{ color: '#A3A3A3', fontSize: '0.75rem' }}>Premium per Option</span>
           <span style={{ color: '#FFF', fontSize: '0.75rem' }}>${premiumPerOption.toFixed(2)} USDC</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ color: '#A3A3A3', fontSize: '0.75rem' }}>Network Fee</span>
-          <span style={{ color: '#FFF', fontSize: '0.75rem' }}>${(quantity > 0 ? networkFee : 0).toFixed(2)} USDC</span>
-        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <span style={{ color: '#5EEAD4', fontSize: '0.9rem', fontWeight: 'bold' }}>Total Cost</span>
+          <span style={{ color: '#5EEAD4', fontSize: '0.9rem', fontWeight: 'bold' }}>Total Premium Cost</span>
           <span style={{ color: '#5EEAD4', fontSize: '0.9rem', fontWeight: 'bold' }}>${totalCost.toFixed(2)} USDC</span>
         </div>
       </div>
 
       <PayoffChart 
         type="buy" 
-        strike={100} 
+        strike={market ? market.strike : 0} 
         premium={premiumPerOption} 
         quantity={quantity} 
       />

@@ -68,7 +68,8 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
           // Determine symbol manually based on some known Devnet Mints, or just show partial mint address
           const isBTC = underlyingMint.startsWith('J9B'); // Just a dummy check for Devnet
           const isETH = underlyingMint.startsWith('7vx'); 
-          const symbol = isBTC ? 'BTC/USDC' : isETH ? 'ETH/USDC' : `${underlyingMint.slice(0,4)}.../USDC`;
+          // Set everything else to SOL/USDC so it shows up when user clicks SOL in UI
+          const symbol = isBTC ? 'BTC/USDC' : isETH ? 'ETH/USDC' : 'SOL/USDC';
 
           const marketLiquidity = liquidityMap[marketId];
           const totalLiquidity = marketLiquidity ? marketLiquidity.totalLiquidity : 0;

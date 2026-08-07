@@ -10,30 +10,18 @@ function Landing() {
     <>
       <SilkBackground color="#5EEAD4" speed={1.0} intensity={0.25} scale={2.0} />
       <main className="hero-container">
-        <div className="hero-label">OPTIONS · PERPS · SETTLED IN USDC</div>
-        <h1 className="hero-title">
+        <div className="hero-label animate-fade-up">OPTIONS · PERPS · SETTLED IN USDC</div>
+        <h1 className="hero-title animate-fade-up delay-100">
           Options on <br />
-          <span style={{ color: '#5EEAD4', fontStyle: 'italic' }}>tokenized stocks.</span><br />
+          <span style={{ color: '#5EEAD4', fontStyle: 'italic', textShadow: '0 0 30px rgba(94,234,212,0.3)' }}>tokenized stocks.</span><br />
           On-chain derivatives,<br />
           24/7.
         </h1>
-        <p className="hero-subtitle">
+        <p className="hero-subtitle animate-fade-up delay-200">
           Buy calls and puts, long or short any market, or write them to earn premium. Fully collateralized, oracle-priced, and open 24/7 on Solana.
         </p>
         <Link to="/terminal" style={{ textDecoration: 'none' }}>
-          <button style={{
-            backgroundColor: '#5EEAD4',
-            color: '#0A0A0A',
-            border: 'none',
-            padding: '1rem 2.5rem',
-            fontFamily: "'Space Mono', monospace",
-            fontWeight: 'bold',
-            fontSize: '1rem',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            boxShadow: '0 0 20px rgba(94, 234, 212, 0.4)'
-          }}>
+          <button className="hero-btn animate-fade-up delay-300">
             START TRADING
           </button>
         </Link>
@@ -41,14 +29,14 @@ function Landing() {
 
       <section className="content-section">
         <div className="section-grid">
-          <div className="glass-panel">
+          <div className="glass-panel animate-fade-up delay-100">
             <div className="section-title">THE VISION</div>
             <h2 className="section-heading">Institutional-Grade Derivatives for Everyone.</h2>
             <p className="section-text">
               Stableperp bridges the gap between traditional finance and decentralized execution. While it started as a concept rooted in community culture, our architecture is built for serious capital. We believe that robust, highly-liquid synthetic markets should not be gated by centralized entities.
             </p>
           </div>
-          <div className="glass-panel">
+          <div className="glass-panel animate-fade-up delay-200">
             <div className="section-title">THE MISSION</div>
             <h2 className="section-heading">Transparent, Fully Collateralized On-Chain Markets.</h2>
             <p className="section-text">
@@ -57,28 +45,28 @@ function Landing() {
           </div>
         </div>
 
-        <div className="section-title" style={{ textAlign: 'center', marginBottom: '3rem' }}>CORE INFRASTRUCTURE</div>
+        <div className="section-title animate-fade-up" style={{ textAlign: 'center', marginBottom: '3rem' }}>CORE INFRASTRUCTURE</div>
         <div className="feature-cards">
-          <div className="feature-card">
+          <div className="feature-card animate-fade-up delay-100">
             <h3 className="feature-title">100% Collateralized</h3>
             <p className="feature-desc">Every position is mathematically secured by USDC locked in programmatic vaults. If you write an option, the payout is guaranteed. Insolvency is impossible by design.</p>
           </div>
-          <div className="feature-card">
+          <div className="feature-card animate-fade-up delay-200">
             <h3 className="feature-title">High-Fidelity Oracles</h3>
             <p className="feature-desc">Integrated with leading Oracle networks (Pyth/Switchboard) to ensure split-second accuracy for settlement and pricing, immune to local market manipulation.</p>
           </div>
-          <div className="feature-card">
+          <div className="feature-card animate-fade-up delay-300">
             <h3 className="feature-title">Permissionless Yield</h3>
             <p className="feature-desc">Liquidity isn't monopolized by market makers. Anyone can step in to write options, provide liquidity, and capture real yields from market premiums directly on-chain.</p>
           </div>
         </div>
 
-        <div className="section-title" style={{ textAlign: 'center', marginTop: '6rem', marginBottom: '3rem' }}>SUPPORTED MARKETS</div>
-        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div className="section-title animate-fade-up" style={{ textAlign: 'center', marginTop: '6rem', marginBottom: '3rem' }}>SUPPORTED MARKETS</div>
+        <div className="glass-panel animate-fade-up delay-100" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 className="section-heading" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Trade Anything. Settle in USDC.</h2>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '800px' }}>
             {['Tokenized Equities (AAPL, TSLA)', 'Crypto Majors (BTC, SOL)', 'Foreign Exchange (EUR, JPY)', 'Commodities (GLD, SLV)'].map(market => (
-              <span key={market} style={{ padding: '0.75rem 1.5rem', backgroundColor: 'rgba(94, 234, 212, 0.1)', color: '#5EEAD4', border: '1px solid rgba(94, 234, 212, 0.3)', borderRadius: '30px', fontFamily: "'Space Mono', monospace", fontSize: '0.9rem' }}>
+              <span key={market} style={{ padding: '0.75rem 1.5rem', backgroundColor: 'rgba(94, 234, 212, 0.1)', color: '#5EEAD4', border: '1px solid rgba(94, 234, 212, 0.3)', borderRadius: '30px', fontFamily: "'Space Mono', monospace", fontSize: '0.9rem', transition: 'all 0.3s' }} onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(94, 234, 212, 0.2)'} onMouseOut={e => e.currentTarget.style.backgroundColor = 'rgba(94, 234, 212, 0.1)'}>
                 {market}
               </span>
             ))}
@@ -88,9 +76,9 @@ function Landing() {
           </p>
         </div>
 
-        <div className="section-title" style={{ textAlign: 'center', marginTop: '6rem', marginBottom: '3rem' }}>ROADMAP</div>
+        <div className="section-title animate-fade-up" style={{ textAlign: 'center', marginTop: '6rem', marginBottom: '3rem' }}>ROADMAP</div>
         <div className="feature-cards">
-          <div className="feature-card">
+          <div className="feature-card animate-fade-up delay-100">
             <h3 className="feature-title" style={{ color: '#5EEAD4' }}>PHASE I: Genesis</h3>
             <p className="feature-desc">
               - Core Options Protocol on Devnet<br/>
@@ -99,7 +87,7 @@ function Landing() {
               - Mainnet Beta Launch
             </p>
           </div>
-          <div className="feature-card">
+          <div className="feature-card animate-fade-up delay-200">
             <h3 className="feature-title" style={{ color: '#5EEAD4' }}>PHASE II: Expansion</h3>
             <p className="feature-desc">
               - Perpetual Futures (Perps) Integration<br/>
@@ -108,7 +96,7 @@ function Landing() {
               - Mobile Optimized Interface
             </p>
           </div>
-          <div className="feature-card">
+          <div className="feature-card animate-fade-up delay-300">
             <h3 className="feature-title" style={{ color: '#5EEAD4' }}>PHASE III: Decentralization</h3>
             <p className="feature-desc">
               - DAO Governance (SPL Token)<br/>

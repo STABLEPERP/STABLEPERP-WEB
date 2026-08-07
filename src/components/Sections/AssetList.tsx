@@ -55,24 +55,16 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
         const open = parseFloat(d.o);
         const change24h = open > 0 ? ((close - open) / open) * 100 : 0;
         
-        setAssetMap((prev) => {
-          const updated = {
-            ...prev,
-            [base]: {
-              id: base,
-              symbol: base,
-              price: close,
-              change24h,
-              volume24h: parseFloat(d.q),
-            },
-          };
-          
-          if (onPricesUpdate) {
-            onPricesUpdate(updated);
-          }
-          
-          return updated;
-        });
+        setAssetMap((prev) => ({
+          ...prev,
+          [base]: {
+            id: base,
+            symbol: base,
+            price: close,
+            change24h,
+            volume24h: parseFloat(d.q),
+          },
+        }));
       };
 
       ws.onerror = () => ws.close();
@@ -91,6 +83,13 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
       }
     };
   }, []);
+
+  // Notify parent of price updates safely outside the reducer
+  useEffect(() => {
+    if (onPricesUpdate) {
+      onPricesUpdate(assetMap);
+    }
+  }, [assetMap, onPricesUpdate]);
 
   // Auto-select first asset once prices are available
   useEffect(() => {
