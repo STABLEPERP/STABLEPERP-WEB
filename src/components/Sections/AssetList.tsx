@@ -12,6 +12,7 @@ export interface Asset {
 interface AssetListProps {
   onSelectAsset?: (asset: Asset) => void;
   selectedAssetId?: string;
+  onPricesUpdate?: (prices: Record<string, Asset>) => void;
 }
 
 const TRACKED_SYMBOLS = [
@@ -30,7 +31,7 @@ const buildInitialMap = (): Record<string, Asset> => {
   return map;
 };
 
-export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId }) => {
+export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, onPricesUpdate }) => {
   const [assetMap, setAssetMap] = useState<Record<string, Asset>>(buildInitialMap);
   const hasAutoSelected = useRef(false);
   const wsRef = useRef<WebSocket | null>(null);
@@ -65,6 +66,11 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId }
               volume24h: parseFloat(d.q),
             },
           };
+          
+          if (onPricesUpdate) {
+            onPricesUpdate(updated);
+          }
+          
           return updated;
         });
       };

@@ -11,6 +11,9 @@ export function Terminal() {
   const [bottomTab, setBottomTab] = useState<'chain' | 'positions'>('chain');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [selectedMarket, setSelectedMarket] = useState<any | null>(null);
+  const [livePrices, setLivePrices] = useState<Record<string, Asset>>({});
+
+  const headerAsset = selectedAsset ? (livePrices[selectedAsset.id] || selectedAsset) : null;
 
   return (
     <div style={{
@@ -37,7 +40,7 @@ export function Terminal() {
       }}>
         <div style={{ padding: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', fontSize: '0.75rem', color: '#A3A3A3', letterSpacing: '0.1em' }}>MARKETS</div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
-          <AssetList onSelectAsset={setSelectedAsset} selectedAssetId={selectedAsset?.id} />
+          <AssetList onSelectAsset={setSelectedAsset} selectedAssetId={selectedAsset?.id} onPricesUpdate={setLivePrices} />
         </div>
       </div>
 
@@ -53,13 +56,13 @@ export function Terminal() {
       }}>
         <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFF' }}>{selectedAsset ? selectedAsset.symbol : 'Select Asset'}</span>
-            <span style={{ fontSize: '0.875rem', color: '#A3A3A3', marginLeft: '0.5rem' }}>{selectedAsset ? 'Perpetual Options' : ''}</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFF' }}>{headerAsset ? headerAsset.symbol : 'Select Asset'}</span>
+            <span style={{ fontSize: '0.875rem', color: '#A3A3A3', marginLeft: '0.5rem' }}>{headerAsset ? 'Perpetual Options' : ''}</span>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#FFF' }}>{selectedAsset ? `$${selectedAsset.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}</div>
-            <div style={{ fontSize: '0.875rem', color: selectedAsset && selectedAsset.change24h >= 0 ? '#5EEAD4' : '#F87171' }}>
-              {selectedAsset ? `${selectedAsset.change24h >= 0 ? '+' : ''}${selectedAsset.change24h}%` : '-'}
+            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#FFF' }}>{headerAsset && headerAsset.price > 0 ? `$${headerAsset.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}</div>
+            <div style={{ fontSize: '0.875rem', color: headerAsset && headerAsset.change24h >= 0 ? '#5EEAD4' : '#F87171' }}>
+              {headerAsset && headerAsset.price > 0 ? `${headerAsset.change24h >= 0 ? '+' : ''}${headerAsset.change24h.toFixed(2)}%` : '-'}
             </div>
           </div>
         </div>
