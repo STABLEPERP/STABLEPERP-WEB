@@ -25,6 +25,7 @@ interface Position {
   symbol: string; // Underlying e.g. "BTC"
   strike: number;
   size: number;
+  premium: number;
   pnl: number | null;
 }
 
@@ -112,6 +113,7 @@ export const UserPositions: FC = () => {
             symbol,
             strike,
             size: wp.account.mintedAmount.toNumber() / (10 ** 9),
+            premium: wp.account.premiumAsk.toNumber() / (10 ** 6),
             pnl: null, // Calculated reactively from live prices
           };
         });
@@ -139,13 +141,17 @@ export const UserPositions: FC = () => {
               const symbol = resolveSymbol(underlyingMint);
               const market = `${symbol}/USDC`;
 
-              formattedLong.push({
-                id: ta.pubkey.toString(),
-                type: 'LONG',
-                market,
-                symbol,
-                strike,
-                size: amount,
+                const writer = writerPositions.find((wp: any) => wp.account.market.toString() === matchingMarket.publicKey.toString());
+                const premium = writer ? writer.account.premiumAsk.toNumber() / (10 ** 6) : 0;
+                
+                formattedLong.push({
+                  id: ta.pubkey.toString(),
+                  type: 'LONG',
+                  market,
+                  symbol,
+                  strike,
+                  size: amount,
+                  premium,
                 pnl: null,
               });
             }
@@ -170,15 +176,13 @@ export const UserPositions: FC = () => {
     const currentPrice = prices[pos.symbol] ?? null;
     if (currentPrice === null) return { ...pos, pnl: null };
 
-    // LONG: value = max(current - strike, 0) * size
-    // SHORT (writer): inverse — profit when option expires worthless
+    // LONG: value = max(current - strike, 0) - premium
+    // SHORT: value = premium - max(current - strike, 0)
     let pnl: number;
     if (pos.type === 'LONG') {
-      pnl = Math.max(currentPrice - pos.strike, 0) * pos.size;
+      pnl = (Math.max(currentPrice - pos.strike, 0) - pos.premium) * pos.size;
     } else {
-      // SHORT: writer collects premium, loses when price > strike
-      // Show unrealized exposure: if current > strike, writer is at risk
-      pnl = Math.min(pos.strike - currentPrice, 0) * pos.size;
+      pnl = (pos.premium - Math.max(currentPrice - pos.strike, 0)) * pos.size;
     }
 
     return { ...pos, pnl };
