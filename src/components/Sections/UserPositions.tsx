@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { FC } from 'react';
+import { HermesClient } from '@pythnetwork/hermes-client';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
@@ -27,6 +28,7 @@ interface Position {
   size: number;
   premium: number;
   pnl: number | null;
+  pythFeedId?: string | null;
 }
 
 export const UserPositions: FC = () => {
@@ -38,6 +40,7 @@ export const UserPositions: FC = () => {
   const [loading, setLoading] = useState(false);
   const [prices, setPrices] = useState<Record<string, number>>({});
   const wsRef = useRef<WebSocket | null>(null);
+  const hermesRef = useRef(new HermesClient("https://hermes.pyth.network"));
 
   // Subscribe to live prices for position symbols
   useEffect(() => {
@@ -78,6 +81,19 @@ export const UserPositions: FC = () => {
       try {
         setLoading(true);
 
+        // Fetch markets from backend API
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+        let fetchedApiMarkets = [];
+        try {
+           const res = await fetch(`${API_URL}/markets`);
+           const json = await res.json();
+           if (json.success) {
+             fetchedApiMarkets = json.data;
+           }
+        } catch (e) {
+           console.error("Failed to fetch API markets", e);
+        }
+
         // 1. Fetch Written (SHORT) Positions
         const writerPositions = await (program as any).account.writerPosition.all([
           {
@@ -98,12 +114,22 @@ export const UserPositions: FC = () => {
           let market = 'Unknown';
           let symbol = 'SOL';
           let strike = 0;
+          let pythFeedId = null;
 
           if (marketData) {
-            const underlyingMint = marketData.underlyingMint.toString();
-            strike = marketData.strike.toNumber();
-            symbol = resolveSymbol(underlyingMint);
-            market = `${symbol}/USDC`;
+            // First check if it matches an API market for symbol and strike
+            const apiMkt = fetchedApiMarkets.find((m: any) => m.address === mktId);
+            if (apiMkt) {
+              symbol = apiMkt.symbol.split('/')[0];
+              market = apiMkt.symbol;
+              strike = apiMkt.strike;
+              pythFeedId = apiMkt.pythFeedId;
+            } else {
+              const underlyingMint = marketData.underlyingMint.toString();
+              strike = marketData.strike.toNumber();
+              symbol = resolveSymbol(underlyingMint);
+              market = `${symbol}/USDC`;
+            }
           }
 
           return {
@@ -115,6 +141,7 @@ export const UserPositions: FC = () => {
             size: wp.account.mintedAmount.toNumber() / (10 ** 9),
             premium: wp.account.premiumAsk.toNumber() / (10 ** 6),
             pnl: null, // Calculated reactively from live prices
+            pythFeedId
           };
         });
 
@@ -136,10 +163,23 @@ export const UserPositions: FC = () => {
             );
 
             if (matchingMarket) {
-              const underlyingMint = matchingMarket.account.underlyingMint.toString();
-              const strike = matchingMarket.account.strike.toNumber();
-              const symbol = resolveSymbol(underlyingMint);
-              const market = `${symbol}/USDC`;
+              let symbol = 'SOL';
+              let market = 'Unknown';
+              let pythFeedId = null;
+              let strike = 0;
+              
+              const apiMkt = fetchedApiMarkets.find((m: any) => m.address === matchingMarket.publicKey.toString());
+              if (apiMkt) {
+                symbol = apiMkt.symbol.split('/')[0];
+                market = apiMkt.symbol;
+                strike = apiMkt.strike;
+                pythFeedId = apiMkt.pythFeedId;
+              } else {
+                const underlyingMint = matchingMarket.account.underlyingMint.toString();
+                symbol = resolveSymbol(underlyingMint);
+                market = `${symbol}/USDC`;
+                strike = matchingMarket.account.strike.toNumber() / (10 ** 6);
+              }
 
                 const writer = writerPositions.find((wp: any) => wp.account.market.toString() === matchingMarket.publicKey.toString());
                 const premium = writer ? writer.account.premiumAsk.toNumber() / (10 ** 6) : 0;
@@ -152,8 +192,9 @@ export const UserPositions: FC = () => {
                   strike,
                   size: amount,
                   premium,
-                pnl: null,
-              });
+                  pnl: null,
+                  pythFeedId
+                });
             }
           }
         }
@@ -170,6 +211,60 @@ export const UserPositions: FC = () => {
     const interval = setInterval(fetchPositions, 15000);
     return () => clearInterval(interval);
   }, [publicKey, program, connection]);
+
+  // Poll Pyth Prices for positions with pythFeedIds
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    async function updatePythPrices() {
+      const feedIds = Array.from(new Set(
+        positions
+          .map((p: any) => p.pythFeedId)
+          .filter(Boolean)
+          .map(id => {
+            let sId = id as string;
+            if (sId.startsWith('0x')) sId = sId.slice(2);
+            return sId;
+          })
+      ));
+
+      if (feedIds.length === 0) return;
+
+      try {
+        const parsedData = await hermesRef.current.getLatestPriceUpdates(feedIds as string[]);
+        const newPrices: Record<string, number> = {};
+        
+        if (parsedData && parsedData.parsed) {
+          parsedData.parsed.forEach((feed: any) => {
+             const price = feed.price.price * (10 ** feed.price.expo);
+             // find the matching position symbol
+             const position = positions.find((p: any) => {
+                const pId = p.pythFeedId || '';
+                return pId.includes(feed.id);
+             });
+             if (position) {
+               newPrices[position.symbol] = price;
+             }
+          });
+        }
+        
+        if (Object.keys(newPrices).length > 0) {
+          setPrices(prev => ({ ...prev, ...newPrices }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch Pyth prices', err);
+      }
+    }
+
+    if (positions.length > 0) {
+      updatePythPrices();
+      interval = setInterval(updatePythPrices, 5000); // Poll every 5s
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [positions]);
 
   // Calculate PnL reactively from live WebSocket prices
   const positionsWithPnl = positions.map((pos) => {

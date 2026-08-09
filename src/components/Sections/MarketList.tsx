@@ -1,18 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { FC } from 'react';
+import { HermesClient } from '@pythnetwork/hermes-client';
 
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
+import { isUSMarketOpen } from '../../utils/marketHours';
 
 interface Market {
   id: string;
+  address: string;
   symbol: string;
   strike: number;
   expiry: string;
   totalLiquidity: number;
   premiumAsk: number;
-  underlyingMint: string;
-  quoteMint: string;
-  optionMint: string;
+  underlyingMint?: string;
+  quoteMint?: string;
+  optionMint?: string;
+  type: string;
+  pythFeedId?: string;
+  isSynthetic: boolean;
 }
 
 interface MarketListProps {
@@ -24,75 +30,68 @@ interface MarketListProps {
 export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarketId, filterAssetSymbol }) => {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pythPrices, setPythPrices] = useState<Record<string, number>>({});
   const program = useStableperpProgram();
+  const hermesRef = useRef(new HermesClient("https://hermes.pyth.network"));
 
   useEffect(() => {
     async function fetchMarkets() {
       try {
         setLoading(true);
-        // Fetch all market accounts from the blockchain
-        const marketAccounts = await (program as any).account.market.all();
+        // Fetch markets from backend API
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+        const res = await fetch(`${API_URL}/markets`);
+        const json = await res.json();
         
-        // Fetch all writer positions to calculate liquidity and premium dynamically
-        const writerPositions = await (program as any).account.writerPosition.all();
+        if (!json.success) throw new Error('Failed to fetch markets from API');
         
-        const liquidityMap: Record<string, { totalLiquidity: number, lowestPremium: number }> = {};
-        
-        for (const wp of writerPositions) {
-          const marketId = wp.account.market.toString();
-          // Assuming amounts might be large, using parseFloat or keeping it simple.
-          // Since minted/filled are u64, toNumber() works for small amounts, or we can use BN logic.
-          const available = wp.account.mintedAmount.toNumber() - wp.account.filledAmount.toNumber();
-          
-          if (available > 0) {
-            if (!liquidityMap[marketId]) {
-              liquidityMap[marketId] = { totalLiquidity: 0, lowestPremium: Infinity };
-            }
-            liquidityMap[marketId].totalLiquidity += available;
+        let apiMarkets: Market[] = json.data.map((m: any) => ({
+          ...m,
+          id: m.address,
+          expiry: new Date(m.expiry).toLocaleDateString('en-GB')
+        }));
+
+        // Fetch writer positions from chain for dynamic liquidity
+        if (program) {
+          try {
+            const writerPositions = await (program as any).account.writerPosition.all();
+            const liquidityMap: Record<string, { totalLiquidity: number, lowestPremium: number }> = {};
             
-            const premium = wp.account.premiumAsk.toNumber();
-            if (premium < liquidityMap[marketId].lowestPremium) {
-              liquidityMap[marketId].lowestPremium = premium;
+            for (const wp of writerPositions) {
+              const marketId = wp.account.market.toString();
+              const available = wp.account.mintedAmount.toNumber() - wp.account.filledAmount.toNumber();
+              
+              if (available > 0) {
+                if (!liquidityMap[marketId]) {
+                  liquidityMap[marketId] = { totalLiquidity: 0, lowestPremium: Infinity };
+                }
+                liquidityMap[marketId].totalLiquidity += available;
+                
+                const premium = wp.account.premiumAsk.toNumber();
+                if (premium < liquidityMap[marketId].lowestPremium) {
+                  liquidityMap[marketId].lowestPremium = premium;
+                }
+              }
             }
+
+            apiMarkets = apiMarkets.map(m => {
+              const chainData = liquidityMap[m.address];
+              if (chainData) {
+                m.totalLiquidity = chainData.totalLiquidity / (10 ** 9);
+                if (chainData.lowestPremium !== Infinity) {
+                  m.premiumAsk = chainData.lowestPremium / (10 ** 6);
+                }
+              }
+              return m;
+            });
+          } catch(e) {
+            console.warn('Could not fetch on-chain liquidity, using API defaults', e);
           }
         }
 
-        const formattedMarkets = marketAccounts.map((account: any) => {
-          // Decode on-chain data
-          const marketId = account.publicKey.toString();
-          const underlyingMint = account.account.underlyingMint.toString();
-          const strikePrice = account.account.strike.toNumber(); // Assume integer for now
-          const expiryTs = account.account.expiryTs.toNumber();
-          const date = new Date(expiryTs * 1000).toLocaleDateString('en-GB');
-
-          // Determine symbol manually based on some known Devnet Mints, or just show partial mint address
-          const isBTC = underlyingMint.startsWith('J9B'); // Just a dummy check for Devnet
-          const isETH = underlyingMint.startsWith('7vx'); 
-          // Set everything else to SOL/USDC so it shows up when user clicks SOL in UI
-          const symbol = isBTC ? 'BTC/USDC' : isETH ? 'ETH/USDC' : 'SOL/USDC';
-
-          const marketLiquidity = liquidityMap[marketId];
-          const totalLiquidity = marketLiquidity ? marketLiquidity.totalLiquidity / (10 ** 9) : 0;
-          const premiumAsk = marketLiquidity && marketLiquidity.lowestPremium !== Infinity 
-            ? marketLiquidity.lowestPremium / (10 ** 6)
-            : 0;
-
-          return {
-            id: marketId,
-            symbol: symbol,
-            strike: strikePrice,
-            expiry: date,
-            totalLiquidity,
-            premiumAsk,
-            underlyingMint: account.account.underlyingMint.toString(),
-            quoteMint: account.account.quoteMint.toString(),
-            optionMint: account.account.optionMint.toString(),
-          };
-        });
-
-        setMarkets(formattedMarkets);
+        setMarkets(apiMarkets);
       } catch (err) {
-        console.error('Error fetching markets from Devnet:', err);
+        console.error('Error fetching markets:', err);
       } finally {
         setLoading(false);
       }
@@ -101,8 +100,57 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
     fetchMarkets();
   }, [program]);
 
+  // Poll Pyth Prices for the displayed markets
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    async function updatePythPrices() {
+      const feedIds = markets
+        .filter(m => m.pythFeedId)
+        .map(m => {
+          let id = m.pythFeedId as string;
+          if (id.startsWith('0x')) id = id.slice(2);
+          return id;
+        });
+
+      if (feedIds.length === 0) return;
+
+      try {
+        const parsedData = await hermesRef.current.getLatestPriceUpdates(feedIds);
+        const newPrices: Record<string, number> = {};
+        
+        if (parsedData && parsedData.parsed) {
+          parsedData.parsed.forEach((feed: any) => {
+             const price = feed.price.price * (10 ** feed.price.expo);
+             newPrices[feed.id] = price;
+          });
+        }
+        
+        setPythPrices(newPrices);
+      } catch (err) {
+        console.error('Failed to fetch Pyth prices', err);
+      }
+    }
+
+    if (markets.length > 0) {
+      updatePythPrices();
+      interval = setInterval(updatePythPrices, 5000); // Poll every 5s
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [markets]);
+
+  const filteredMarkets = markets.filter(m => 
+    (!filterAssetSymbol || m.symbol.startsWith(filterAssetSymbol))
+  );
+
+  const marketOpen = filteredMarkets.some(m => m.isSynthetic) ? isUSMarketOpen() : true;
+
   return (
     <div style={{ width: '100%', overflowX: 'auto' }}>
+      
       <table style={{ 
         width: '100%', 
         borderCollapse: 'collapse', 
@@ -115,6 +163,7 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
             <th style={{ padding: '1rem' }}>MKT ID</th>
             <th style={{ padding: '1rem' }}>ASSET</th>
             <th style={{ padding: '1rem' }}>STRIKE</th>
+            <th style={{ padding: '1rem' }}>MARK PRICE</th>
             <th style={{ padding: '1rem' }}>EXPIRY</th>
             <th style={{ padding: '1rem' }}>TYPE</th>
             <th style={{ padding: '1rem', textAlign: 'right' }}>PREMIUM</th>
@@ -123,46 +172,65 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
         </thead>
         <tbody>
           {loading ? (
-            <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center' }}>Loading markets...</td></tr>
-          ) : markets.filter(m => !filterAssetSymbol || m.symbol.startsWith(filterAssetSymbol)).length === 0 ? (
-            <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center' }}>No active markets found.</td></tr>
+            <tr><td colSpan={8} style={{ padding: '2rem', textAlign: 'center' }}>Loading markets...</td></tr>
+          ) : filteredMarkets.length === 0 ? (
+            <tr><td colSpan={8} style={{ padding: '2rem', textAlign: 'center' }}>No active markets found for this asset.</td></tr>
           ) : (
-            markets
-              .filter(m => !filterAssetSymbol || m.symbol.startsWith(filterAssetSymbol))
-              .map((mkt) => {
-              const isCall = true; // Placeholder for type since it's missing in simple schema
-              return (
-                <tr 
-                  key={mkt.id} 
-                  onClick={() => onSelectMarket && onSelectMarket(mkt)}
-                  style={{ 
-                    borderBottom: '1px solid rgba(255,255,255,0.05)',
-                    color: '#E5E5E5',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                    backgroundColor: selectedMarketId === mkt.id ? 'rgba(94, 234, 212, 0.1)' : 'transparent',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (selectedMarketId !== mkt.id) {
-                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedMarketId !== mkt.id) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }
-                  }}
-                >
+            <>
+              {!marketOpen && (
+                <tr>
+                  <td colSpan={8} style={{ padding: '1rem', textAlign: 'center', color: '#F87171', backgroundColor: 'rgba(248, 113, 113, 0.1)' }}>
+                    ⚠️ US Stock Market is currently closed. Trading is suspended until regular hours (09:30 - 16:00 ET).
+                  </td>
+                </tr>
+              )}
+              {filteredMarkets.map((mkt) => {
+                const isCall = true; // Placeholder for type since it's missing in simple schema
+                return (
+                  <tr 
+                    key={mkt.id} 
+                    onClick={() => {
+                      if (marketOpen && onSelectMarket) onSelectMarket(mkt);
+                    }}
+                    style={{ 
+                      borderBottom: '1px solid rgba(255,255,255,0.05)',
+                      color: marketOpen ? '#E5E5E5' : '#6B7280',
+                      cursor: marketOpen ? 'pointer' : 'not-allowed',
+                      transition: 'background-color 0.2s',
+                      backgroundColor: selectedMarketId === mkt.id && marketOpen ? 'rgba(94, 234, 212, 0.1)' : 'transparent',
+                      opacity: marketOpen ? 1 : 0.5,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (selectedMarketId !== mkt.id && marketOpen) {
+                        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedMarketId !== mkt.id && marketOpen) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }
+                    }}
+                  >
                   <td style={{ padding: '1rem', color: '#5EEAD4' }}>{mkt.id.slice(0,4)}...{mkt.id.slice(-4)}</td>
                   <td style={{ padding: '1rem', fontWeight: 'bold' }}>{mkt.symbol}</td>
                   <td style={{ padding: '1rem' }}>${mkt.strike.toLocaleString()}</td>
+                  <td style={{ padding: '1rem', color: '#FCD34D' }}>
+                    {(() => {
+                      if (!mkt.pythFeedId) return '-';
+                      const strippedId = mkt.pythFeedId.startsWith('0x') ? mkt.pythFeedId.slice(2) : mkt.pythFeedId;
+                      const price = pythPrices[strippedId];
+                      return price ? `$${price.toFixed(2)}` : '-';
+                    })()}
+                  </td>
                   <td style={{ padding: '1rem' }}>{mkt.expiry}</td>
                   <td style={{ padding: '1rem', color: isCall ? '#5EEAD4' : '#F87171' }}>{isCall ? 'CALL' : 'PUT'}</td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>${mkt.premiumAsk.toFixed(2)}</td>
+                  <td style={{ padding: '1rem', textAlign: 'right' }}>${typeof mkt.premiumAsk === 'number' ? mkt.premiumAsk.toFixed(2) : mkt.premiumAsk}</td>
                   <td style={{ padding: '1rem', textAlign: 'right' }}>{mkt.totalLiquidity}</td>
                 </tr>
               );
             })
+            }
+            </>
           )}
         </tbody>
       </table>

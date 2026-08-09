@@ -5,6 +5,7 @@ import { BuyOption } from '../components/Sections/BuyOption';
 import { TradingViewChart } from '../components/TradingViewChart';
 import { UserPositions } from '../components/Sections/UserPositions';
 import { AssetList, type Asset } from '../components/Sections/AssetList';
+import { KYCDisclaimer } from '../components/common/KYCDisclaimer';
 
 export function Terminal() {
   const [orderTab, setOrderTab] = useState<'buy' | 'write'>('buy');
@@ -130,6 +131,7 @@ export function Terminal() {
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
           {orderTab === 'buy' ? <BuyOption market={selectedMarket} /> : <WriteOption market={selectedMarket} />}
+          <KYCDisclaimer />
         </div>
       </div>
     </div>
