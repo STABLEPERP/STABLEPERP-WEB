@@ -6,6 +6,7 @@ import { TradingViewChart } from '../components/TradingViewChart';
 import { UserPositions } from '../components/Sections/UserPositions';
 import { AssetList, type Asset } from '../components/Sections/AssetList';
 import { KYCDisclaimer } from '../components/common/KYCDisclaimer';
+import './Terminal.css';
 
 export function Terminal() {
   const [orderTab, setOrderTab] = useState<'buy' | 'write'>('buy');
@@ -17,28 +18,9 @@ export function Terminal() {
   const headerAsset = selectedAsset ? (livePrices[selectedAsset.id] || selectedAsset) : null;
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: '250px 1fr 350px',
-      gridTemplateRows: '1fr 300px',
-      height: 'calc(100vh - 70px)',
-      marginTop: '70px',
-      gap: '1rem',
-      padding: '0 1.5rem 1.5rem 1.5rem',
-      boxSizing: 'border-box',
-      fontFamily: "'Space Mono', monospace"
-    }}>
+    <div className="terminal-layout">
       {/* LEFT SIDEBAR: MARKETS */}
-      <div style={{
-        gridRow: '1 / 3',
-        backgroundColor: 'rgba(20, 20, 20, 0.6)',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
-        borderRadius: '12px',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        backdropFilter: 'blur(16px)',
-      }}>
+      <div className="terminal-panel terminal-left">
         <div style={{ padding: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', fontSize: '0.75rem', color: '#A3A3A3', letterSpacing: '0.1em' }}>MARKETS</div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
           <AssetList onSelectAsset={setSelectedAsset} selectedAssetId={selectedAsset?.id} onPricesUpdate={setLivePrices} />
@@ -46,15 +28,7 @@ export function Terminal() {
       </div>
 
       {/* CENTER TOP: CHART & HEADER */}
-      <div style={{
-        gridRow: '1',
-        backgroundColor: 'rgba(20, 20, 20, 0.6)',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
-        borderRadius: '12px',
-        display: 'flex',
-        flexDirection: 'column',
-        backdropFilter: 'blur(16px)',
-      }}>
+      <div className="terminal-panel terminal-center-top">
         <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFF' }}>{headerAsset ? headerAsset.symbol : 'Select Asset'}</span>
@@ -73,16 +47,7 @@ export function Terminal() {
       </div>
 
       {/* CENTER BOTTOM: OPTION CHAIN / POSITIONS */}
-      <div style={{
-        gridRow: '2',
-        backgroundColor: 'rgba(20, 20, 20, 0.6)',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
-        borderRadius: '12px',
-        padding: '1rem',
-        display: 'flex',
-        flexDirection: 'column',
-        backdropFilter: 'blur(16px)',
-      }}>
+      <div className="terminal-panel terminal-center-bottom" style={{ padding: '1rem' }}>
         <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', marginBottom: '0.5rem' }}>
           <button 
             onClick={() => setBottomTab('chain')}
@@ -105,16 +70,7 @@ export function Terminal() {
       </div>
 
       {/* RIGHT SIDEBAR: ORDER ENTRY */}
-      <div style={{
-        gridRow: '1 / 3',
-        backgroundColor: 'rgba(20, 20, 20, 0.6)',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
-        borderRadius: '12px',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        backdropFilter: 'blur(16px)',
-      }}>
+      <div className="terminal-panel terminal-right">
         <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
           <button 
             onClick={() => setOrderTab('buy')}

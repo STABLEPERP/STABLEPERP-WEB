@@ -24,18 +24,18 @@ const TRACKED_SYMBOLS = [
 ];
 
 const PYTH_SYMBOLS = [
-  { symbol: 'TSLA', feedId: '09db3fec44a861ec3b246a47a1188047913e2bb97f50a3cc4600109153099ea6' },
-  { symbol: 'AAPL', feedId: '49f6b65cb1db6fcbc7046ae9b5fce2cf20ee2be6ad71a3915bcbf09a9f4c39f0' },
-  { symbol: 'NVDA', feedId: '9c3dcbd82531ed7dfcb2e76f6de48a865b1cb3f9ebba0f5ddc31f4ff68be7902' },
+  { symbol: 'TSLA', feedId: '16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1' },
+  { symbol: 'AAPL', feedId: '49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688' },
+  { symbol: 'NVDA', feedId: 'b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593' },
   { symbol: 'MSFT', feedId: 'd0ca23c1cc005e004ccf1db5bf76aeb6a49218f43dac3d4b275e92de12ded4d1' },
   { symbol: 'AMZN', feedId: 'b5d0e0fa58a1f8b81498ae670ce93c872d14434b72c364885d4fa1b257cbb07a' },
-  { symbol: 'GOOGL', feedId: '07d24bb76843496a45bce0add8b51555f2ea02098cb04f4c6d61f7b5720836b4' },
-  { symbol: 'META', feedId: '399f1e8f1c4a517859963b56f104727a7a3c7f0f8fee56d34fa1f72e5a4b78ef' },
-  { symbol: 'NFLX', feedId: 'f3ae7810a11854aed92499250f89edd22409075dce2c17305fc33653522424c6' },
+  { symbol: 'GOOGL', feedId: '5a48c03e9b9cb337801073ed9d166817473697efff0d138874e0f6a33d6d5aa6' },
+  { symbol: 'META', feedId: '78a3e3b8e676a8f73c439f5d749737034b139bbbe899ba5775216fba596607fe' },
+  { symbol: 'NFLX', feedId: '8376cfd7ca8bcdf372ced05307b24dced1f15b1afafdeff715664598f15a3dd2' },
   { symbol: 'AMD',  feedId: '3622e381dbca2efd1859253763b1adc63f7f9abb8e76da1aa8e638a57ccde93e' },
-  { symbol: 'COIN', feedId: '5c3bd92f2eed33779040caea9f82fac705f5121d26251f8f5e17ec35b9559cd4' },
-  { symbol: 'SPY',  feedId: '5374a7d76a45ae2443cef351d10482b7bcc6ef5a928e75030d63b5fb3abe7cb5' },
-  { symbol: 'QQQ',  feedId: '0eda5e8f3e5881e7e64971b02359250f9d70977e63940c4c9c0d77f54195f13e' },
+  { symbol: 'COIN', feedId: 'fee33f2a978bf32dd6b662b65ba8083c6773b494f8401194ec1870c640860245' },
+  { symbol: 'SPY',  feedId: '19e09bb805456ada3979a7d1cbb4b6d63babc3a0f8e8a9509f68afa5c4c11cd5' },
+  { symbol: 'QQQ',  feedId: '9695e2b96ea7b3859da9ed25b7a46a920a776e2fdae19a7bcfdf2b219230452d' },
   { symbol: 'GME',  feedId: '6f9cd89ef1b7fd39f667101a91ad578b6c6ace4579d5f7f285a4b06aa4504be6' },
 ];
 
@@ -106,9 +106,11 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
     };
   }, []);
 
-  // Poll Pyth for US Stocks
+  // Poll Pyth for US Stocks and fetch 24h change
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let pythInterval: NodeJS.Timeout;
+    let changeInterval: NodeJS.Timeout;
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
     async function fetchPyth() {
       try {
@@ -125,7 +127,6 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
                 next[symInfo.symbol] = {
                   ...next[symInfo.symbol],
                   price,
-                  change24h: 0, // Not available easily without historical
                 };
               }
             });
@@ -137,10 +138,43 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
       }
     }
 
-    fetchPyth();
-    interval = setInterval(fetchPyth, 5000);
+    async function fetchStockChanges() {
+      try {
+        const symbolsStr = PYTH_SYMBOLS.map(p => p.symbol).join(',');
+        const res = await fetch(`${API_URL}/stocks/change?symbols=${symbolsStr}`);
+        const json = await res.json();
+        
+        if (json.success && json.data) {
+          setAssetMap(prev => {
+            const next = { ...prev };
+            Object.keys(json.data).forEach(sym => {
+              if (next[sym]) {
+                next[sym] = {
+                  ...next[sym],
+                  change24h: json.data[sym].change24h,
+                  // We can optionally use volume, but user wants to hide it.
+                };
+              }
+            });
+            return next;
+          });
+        }
+      } catch (e) {
+        console.error('Failed to fetch stock 24h changes', e);
+      }
+    }
 
-    return () => clearInterval(interval);
+    fetchPyth();
+    fetchStockChanges();
+    
+    pythInterval = setInterval(fetchPyth, 5000);
+    // Fetch changes less frequently (every 60s) since they update slowly
+    changeInterval = setInterval(fetchStockChanges, 60000);
+
+    return () => {
+      clearInterval(pythInterval);
+      clearInterval(changeInterval);
+    };
   }, []);
 
   // Notify parent of price updates safely outside the reducer
@@ -233,9 +267,11 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
               <div style={{ fontWeight: 'bold', color: '#FFF', fontSize: '0.875rem' }}>
                 {asset.symbol}{PYTH_SYMBOLS.some(p => p.symbol === asset.symbol) ? '' : '/USDT'}
               </div>
-              <div style={{ color: '#A3A3A3', fontSize: '0.7rem', marginTop: '0.2rem' }}>
-                {asset.volume24h > 0 ? formatVolume(asset.volume24h) : '—'}
-              </div>
+              {!PYTH_SYMBOLS.some(p => p.symbol === asset.symbol) && (
+                <div style={{ color: '#A3A3A3', fontSize: '0.7rem', marginTop: '0.2rem' }}>
+                  {asset.volume24h > 0 ? formatVolume(asset.volume24h) : '—'}
+                </div>
+              )}
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontWeight: 'bold', color: '#FFF', fontSize: '0.875rem' }}>
