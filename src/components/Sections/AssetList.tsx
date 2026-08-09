@@ -117,10 +117,11 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
         const feedIds = PYTH_SYMBOLS.map(p => p.feedId);
         const parsedData = await hermesRef.current.getLatestPriceUpdates(feedIds);
         
-        if (parsedData && parsedData.parsed) {
+        const parsed = parsedData?.parsed;
+        if (parsed) {
           setAssetMap(prev => {
             const next = { ...prev };
-            parsedData.parsed.forEach((feed: any) => {
+            parsed.forEach((feed: any) => {
               const symInfo = PYTH_SYMBOLS.find(p => p.feedId === feed.id);
               if (symInfo) {
                 const price = feed.price.price * (10 ** feed.price.expo);
