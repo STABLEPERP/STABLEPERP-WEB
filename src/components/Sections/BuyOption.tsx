@@ -4,7 +4,7 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
-import { PayoffChart } from './PayoffChart';
+
 import { getOrCreateATAInstruction } from '../../utils/token';
 import { TxModal } from '../common/TxModal';
 
@@ -173,11 +173,27 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
           console.error('❌ Program Logs:', logs);
         } catch(e) {}
       }
+
+      let errorMessage = 'Transaction failed! Please ensure you have sufficient USDC balance and Solana for gas fees.';
+      const errString = (err.message || '') + JSON.stringify(err);
+      
+      if (errString.includes('0x1')) {
+          errorMessage = 'Insufficient Token Balance! You do not have enough USDC in your wallet to purchase this option.';
+      } else if (errString.includes('0xbbf') || errString.includes('AccountOwnedByWrongProgram')) {
+          errorMessage = 'Account Owned By Wrong Program (0xbbf). This usually means the market data is outdated. Please refresh the page.';
+      } else if (errString.includes('User rejected')) {
+          errorMessage = 'Transaction was rejected by the user.';
+      } else if (errString.includes('InsufficientOptions') || errString.includes('6015')) {
+          errorMessage = 'Insufficient Options! The writer does not have enough options available to fill your requested quantity.';
+      } else if (errString.includes('CannotTradeWithSelf') || errString.includes('6010')) {
+          errorMessage = 'Wash Trading Blocked! You cannot buy an option from your own writer pool.';
+      }
+
       setModalState({ 
         isOpen: true, 
         type: 'error', 
         title: 'Transaction Failed', 
-        message: 'Transaction failed! Please ensure you have sufficient USDC balance and Solana for gas fees.' 
+        message: errorMessage 
       });
     } finally {
       setLoading(false);
@@ -217,12 +233,7 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
         </div>
       </div>
 
-      <PayoffChart 
-        type="buy" 
-        strike={market ? market.strike : 0} 
-        premium={premiumPerOption} 
-        quantity={quantity} 
-      />
+
 
       <button type="submit" disabled={loading} style={{
         width: '100%',

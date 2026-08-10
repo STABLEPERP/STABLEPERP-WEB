@@ -53,9 +53,8 @@ export const PayoffChart: FC<PayoffChartProps> = ({ type, strike, premium, quant
     let pnl = 0;
     
     if (type === 'write') {
-      // Covered Call payoff (since user locks underlying asset)
-      // Assuming cost basis of underlying is roughly the strike price for visualization
-      pnl = (Math.min(price, strike) - strike + premium) * quantity;
+      // Short Call payoff (Option leg only)
+      pnl = (premium - Math.max(0, price - strike)) * quantity;
     } else {
       // Long Call payoff
       pnl = (Math.max(0, price - strike) - premium) * quantity;

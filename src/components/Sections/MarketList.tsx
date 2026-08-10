@@ -148,8 +148,7 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
   );
 
   const usMarketClosed = !isUSMarketOpen();
-  const hasSyntheticMarkets = filteredMarkets.some(m => m.isSynthetic);
-  const showBanner = hasSyntheticMarkets && usMarketClosed;
+
 
   return (
     <div style={{ width: '100%', overflowX: 'auto' }}>
@@ -180,13 +179,7 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
             <tr><td colSpan={8} style={{ padding: '2rem', textAlign: 'center' }}>No active markets found for this asset.</td></tr>
           ) : (
             <>
-              {showBanner && (
-                <tr>
-                  <td colSpan={8} style={{ padding: '1rem', textAlign: 'center', color: '#F87171', backgroundColor: 'rgba(248, 113, 113, 0.1)' }}>
-                    ⚠️ US Stock Market is currently closed. Trading is suspended until regular hours (09:30 - 16:00 ET).
-                  </td>
-                </tr>
-              )}
+
               {filteredMarkets.map((mkt) => {
                 const isCall = true; // Placeholder for type since it's missing in simple schema
                 const isTradeable = mkt.isSynthetic ? !usMarketClosed : true;

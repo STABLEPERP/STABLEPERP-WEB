@@ -3,7 +3,8 @@ import type { FC } from 'react';
 import { HermesClient } from '@pythnetwork/hermes-client';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token';
+import { PublicKey, SystemProgram } from '@solana/web3.js';
 import { useNetwork } from '../../contexts/NetworkContext';
 
 // Resolve underlying mint prefix to Binance symbol for live price
@@ -30,6 +31,9 @@ interface Position {
   premium: number;
   pnl: number | null;
   pythFeedId?: string | null;
+  marketId?: string;
+  underlyingMint?: string;
+  optionMint?: string;
 }
 
 export const UserPositions: FC = () => {
@@ -142,7 +146,10 @@ export const UserPositions: FC = () => {
             size: wp.account.mintedAmount.toNumber() / (10 ** 9),
             premium: wp.account.premiumAsk.toNumber() / (10 ** 6),
             pnl: null, // Calculated reactively from live prices
-            pythFeedId
+            pythFeedId,
+            marketId: mktId,
+            underlyingMint: marketData?.underlyingMint?.toString(),
+            optionMint: marketData?.optionMint?.toString()
           };
         });
 
@@ -297,6 +304,43 @@ export const UserPositions: FC = () => {
     );
   }
 
+  const handleReclaim = async (marketId: string, underlyingMint: string, optionMint: string) => {
+    if (!publicKey || !program) return;
+    try {
+      const [writerPosition] = PublicKey.findProgramAddressSync(
+        [Buffer.from('writer'), new PublicKey(marketId).toBuffer(), publicKey.toBuffer()],
+        program.programId
+      );
+      const collateralVault = await getAssociatedTokenAddress(new PublicKey(underlyingMint), new PublicKey(marketId), true);
+      const writerUnderlyingAta = await getAssociatedTokenAddress(new PublicKey(underlyingMint), publicKey);
+      const escrowOptionVault = await getAssociatedTokenAddress(new PublicKey(optionMint), writerPosition, true);
+
+      await program.methods.reclaimCollateral().accounts({
+        market: new PublicKey(marketId),
+        writerPosition,
+        collateralVault,
+        writerUnderlyingAta,
+        escrowOptionVault,
+        optionMint: new PublicKey(optionMint),
+        writer: publicKey,
+        underlyingMint: new PublicKey(underlyingMint),
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      }).rpc();
+      
+      alert('Successfully reclaimed collateral / closed position.');
+      window.location.reload(); // refresh
+    } catch (e: any) {
+      console.error(e);
+      if (e.message?.includes('No unsold options')) {
+         alert('No unsold options to close.');
+      } else {
+         alert('Failed to close position.');
+      }
+    }
+  };
+
   if (loading && positions.length === 0) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#525252', fontSize: '0.875rem' }}>
@@ -324,6 +368,7 @@ export const UserPositions: FC = () => {
             <th style={{ padding: '0.5rem 1rem', fontWeight: 'normal' }}>Size</th>
             <th style={{ padding: '0.5rem 1rem', fontWeight: 'normal' }}>Mark Price</th>
             <th style={{ padding: '0.5rem 1rem', fontWeight: 'normal', textAlign: 'right' }}>Est. PnL</th>
+            <th style={{ padding: '0.5rem 1rem', fontWeight: 'normal', textAlign: 'center' }}>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -353,6 +398,27 @@ export const UserPositions: FC = () => {
                 <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: pnlColor, fontWeight: 'bold' }}>
                   {formatPnl(pos.pnl)}
                 </td>
+                <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
+                  {pos.type === 'SHORT' ? (
+                    <button
+                      onClick={() => handleReclaim(pos.marketId || '', pos.underlyingMint || '', pos.optionMint || '')}
+                      style={{
+                        background: 'rgba(248,113,113,0.1)',
+                        color: '#F87171',
+                        border: '1px solid rgba(248,113,113,0.2)',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.75rem',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      Close
+                    </button>
+                  ) : (
+                    <span style={{ color: '#525252' }}>-</span>
+                  )}
+                </td>
               </tr>
             );
           })}
@@ -361,3 +427,4 @@ export const UserPositions: FC = () => {
     </div>
   );
 };
+

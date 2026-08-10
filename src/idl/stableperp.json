@@ -1,5 +1,5 @@
 {
-  "address": "7rubqTecWv5gDjwhiajw3tr7gfwZcDJvPvoZnBnr9uit",
+  "address": "D2pAeo437UfwD7jALV8rDB5fpHJJBt5GzDeDka8485mS",
   "metadata": {
     "name": "stableperp",
     "version": "0.1.0",
@@ -89,7 +89,14 @@
     {
       "name": "addCreatorAllowlist",
       "discriminator": [
-        194, 235, 14, 239, 246, 103, 211, 18
+        194,
+        235,
+        14,
+        239,
+        246,
+        103,
+        211,
+        18
       ],
       "accounts": [
         {
@@ -458,6 +465,77 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "reclaimCollateral",
+      "discriminator": [
+        98,
+        63,
+        82,
+        118,
+        54,
+        117,
+        74,
+        254
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "writerPosition",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "collateralVault",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "writerUnderlyingAta",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "escrowOptionVault",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "optionMint",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "writer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "underlyingMint",
+          "writable": false,
+          "signer": false
+        },
+        {
+          "name": "tokenProgram",
+          "writable": false,
+          "signer": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "writable": false,
+          "signer": false
+        },
+        {
+          "name": "systemProgram",
+          "writable": false,
+          "signer": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -683,6 +761,13 @@
           }
         ]
       }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6005,
+      "name": "NoUnsoldOptions",
+      "msg": "No unsold options to reclaim."
     }
   ]
 }

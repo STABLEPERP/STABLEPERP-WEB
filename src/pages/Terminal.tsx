@@ -18,6 +18,19 @@ export function Terminal() {
 
   const headerAsset = selectedAsset ? (livePrices[selectedAsset.id] || selectedAsset) : null;
 
+  // Check US Market Hours
+  const now = new Date();
+  const utcHour = now.getUTCHours();
+  const utcMinute = now.getUTCMinutes();
+  const nyTime = (utcHour - 4 + 24) % 24; 
+  const isWeekend = now.getUTCDay() === 0 || now.getUTCDay() === 6;
+  const isBeforeOpen = nyTime < 9 || (nyTime === 9 && utcMinute < 30);
+  const isAfterClose = nyTime >= 16;
+  const usMarketClosed = isWeekend || isBeforeOpen || isAfterClose;
+  
+  const isCrypto = ['BTC', 'ETH', 'SOL', 'JUP', 'JTO', 'PYTH', 'WIF', 'BONK', 'RAY', 'RENDER'].includes(selectedAsset?.symbol || '');
+  const showStockBanner = usMarketClosed && selectedAsset && !isCrypto;
+
   return (
     <div className="terminal-layout">
       {/* MOBILE NAVIGATION BAR */}
@@ -58,6 +71,11 @@ export function Terminal() {
             </div>
           </div>
         </div>
+        {showStockBanner && (
+          <div style={{ padding: '0.75rem 1.5rem', backgroundColor: 'rgba(248, 113, 113, 0.1)', color: '#F87171', fontSize: '0.875rem', textAlign: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            ⚠️ US Stock Market is currently closed. Trading is suspended until regular hours (09:30 - 16:00 ET).
+          </div>
+        )}
         <div style={{ flex: 1, padding: '1rem', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <TradingViewChart symbol={selectedAsset?.symbol ?? 'BTC'} />
         </div>
