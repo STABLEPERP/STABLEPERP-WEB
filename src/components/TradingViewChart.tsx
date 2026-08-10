@@ -24,6 +24,7 @@ export function TradingViewChart({ symbol = 'BTC' }: TradingViewChartProps) {
       key={tvSymbol}
       src={src}
       style={{
+        flex: 1,
         width: '100%',
         height: '100%',
         border: 'none',

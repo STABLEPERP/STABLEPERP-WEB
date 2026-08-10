@@ -11,6 +11,7 @@ import './Terminal.css';
 export function Terminal() {
   const [orderTab, setOrderTab] = useState<'buy' | 'write'>('buy');
   const [bottomTab, setBottomTab] = useState<'chain' | 'positions'>('chain');
+  const [mobileTab, setMobileTab] = useState<'chart' | 'chain' | 'order'>('chart');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [selectedMarket, setSelectedMarket] = useState<any | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, Asset>>({});
@@ -19,8 +20,21 @@ export function Terminal() {
 
   return (
     <div className="terminal-layout">
+      {/* MOBILE NAVIGATION BAR */}
+      <div className="mobile-nav">
+        <button className={`mobile-nav-btn ${mobileTab === 'chart' ? 'active' : ''}`} onClick={() => setMobileTab('chart')}>
+          Chart
+        </button>
+        <button className={`mobile-nav-btn ${mobileTab === 'chain' ? 'active' : ''}`} onClick={() => setMobileTab('chain')}>
+          Chain
+        </button>
+        <button className={`mobile-nav-btn ${mobileTab === 'order' ? 'active' : ''}`} onClick={() => setMobileTab('order')}>
+          Order
+        </button>
+      </div>
+
       {/* LEFT SIDEBAR: MARKETS */}
-      <div className="terminal-panel terminal-left">
+      <div className={`terminal-panel terminal-left ${mobileTab !== 'chart' ? 'mobile-hidden' : ''}`}>
         <div style={{ padding: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', fontSize: '0.75rem', color: '#A3A3A3', letterSpacing: '0.1em' }}>MARKETS</div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
           <AssetList onSelectAsset={setSelectedAsset} selectedAssetId={selectedAsset?.id} onPricesUpdate={setLivePrices} />
@@ -28,7 +42,7 @@ export function Terminal() {
       </div>
 
       {/* CENTER TOP: CHART & HEADER */}
-      <div className="terminal-panel terminal-center-top">
+      <div className={`terminal-panel terminal-center-top ${mobileTab !== 'chart' ? 'mobile-hidden' : ''}`}>
         <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFF' }}>{headerAsset ? headerAsset.symbol : 'Select Asset'}</span>
@@ -41,13 +55,13 @@ export function Terminal() {
             </div>
           </div>
         </div>
-        <div style={{ flex: 1, padding: '1rem', minHeight: 0 }}>
+        <div style={{ flex: 1, padding: '1rem', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <TradingViewChart symbol={selectedAsset?.symbol ?? 'BTC'} />
         </div>
       </div>
 
       {/* CENTER BOTTOM: OPTION CHAIN / POSITIONS */}
-      <div className="terminal-panel terminal-center-bottom" style={{ padding: '1rem' }}>
+      <div className={`terminal-panel terminal-center-bottom ${mobileTab !== 'chain' ? 'mobile-hidden' : ''}`} style={{ padding: '1rem' }}>
         <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', marginBottom: '0.5rem' }}>
           <button 
             onClick={() => setBottomTab('chain')}
@@ -70,7 +84,7 @@ export function Terminal() {
       </div>
 
       {/* RIGHT SIDEBAR: ORDER ENTRY */}
-      <div className="terminal-panel terminal-right">
+      <div className={`terminal-panel terminal-right ${mobileTab !== 'order' ? 'mobile-hidden' : ''}`}>
         <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
           <button 
             onClick={() => setOrderTab('buy')}

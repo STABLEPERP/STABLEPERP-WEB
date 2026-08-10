@@ -138,10 +138,10 @@ body {
   background: linear-gradient(135deg, #5EEAD4 0%, #34d399 100%);
   color: #0A0A0A;
   border: none;
-  padding: 1.25rem 3rem;
+  padding: 1rem 2.5rem;
   font-family: 'Space Mono', monospace;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1rem;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -202,8 +202,51 @@ body {
 }
 
 @media (max-width: 768px) {
+  .hero-container {
+    padding: 100px 5vw 0 5vw;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 10vw, 3.5rem);
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .hero-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+  }
+
+  .content-section {
+    padding: 4rem 5vw;
+  }
+
+  .glass-panel {
+    padding: 1.5rem;
+  }
+
   .section-grid {
     grid-template-columns: 1fr;
-    gap: 3rem;
+    gap: 2rem;
+    margin-bottom: 4rem;
+  }
+
+  .section-heading {
+    font-size: 1.75rem;
+  }
+
+  .section-text {
+    font-size: 1rem;
+  }
+
+  .feature-cards {
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    padding: 1.5rem;
   }
 }
