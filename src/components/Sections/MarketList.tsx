@@ -147,7 +147,9 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
     (!filterAssetSymbol || m.symbol.startsWith(filterAssetSymbol))
   );
 
-  const marketOpen = filteredMarkets.some(m => m.isSynthetic) ? isUSMarketOpen() : true;
+  const usMarketClosed = !isUSMarketOpen();
+  const hasSyntheticMarkets = filteredMarkets.some(m => m.isSynthetic);
+  const showBanner = hasSyntheticMarkets && usMarketClosed;
 
   return (
     <div style={{ width: '100%', overflowX: 'auto' }}>
@@ -178,7 +180,7 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
             <tr><td colSpan={8} style={{ padding: '2rem', textAlign: 'center' }}>No active markets found for this asset.</td></tr>
           ) : (
             <>
-              {!marketOpen && (
+              {showBanner && (
                 <tr>
                   <td colSpan={8} style={{ padding: '1rem', textAlign: 'center', color: '#F87171', backgroundColor: 'rgba(248, 113, 113, 0.1)' }}>
                     ⚠️ US Stock Market is currently closed. Trading is suspended until regular hours (09:30 - 16:00 ET).
@@ -187,27 +189,28 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
               )}
               {filteredMarkets.map((mkt) => {
                 const isCall = true; // Placeholder for type since it's missing in simple schema
+                const isTradeable = mkt.isSynthetic ? !usMarketClosed : true;
                 return (
                   <tr 
                     key={mkt.id} 
                     onClick={() => {
-                      if (marketOpen && onSelectMarket) onSelectMarket(mkt);
+                      if (isTradeable && onSelectMarket) onSelectMarket(mkt);
                     }}
                     style={{ 
                       borderBottom: '1px solid rgba(255,255,255,0.05)',
-                      color: marketOpen ? '#E5E5E5' : '#6B7280',
-                      cursor: marketOpen ? 'pointer' : 'not-allowed',
+                      color: isTradeable ? '#E5E5E5' : '#6B7280',
+                      cursor: isTradeable ? 'pointer' : 'not-allowed',
                       transition: 'background-color 0.2s',
-                      backgroundColor: selectedMarketId === mkt.id && marketOpen ? 'rgba(94, 234, 212, 0.1)' : 'transparent',
-                      opacity: marketOpen ? 1 : 0.5,
+                      backgroundColor: selectedMarketId === mkt.id && isTradeable ? 'rgba(94, 234, 212, 0.1)' : 'transparent',
+                      opacity: isTradeable ? 1 : 0.5,
                     }}
                     onMouseEnter={(e) => {
-                      if (selectedMarketId !== mkt.id && marketOpen) {
+                      if (selectedMarketId !== mkt.id && isTradeable) {
                         e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (selectedMarketId !== mkt.id && marketOpen) {
+                      if (selectedMarketId !== mkt.id && isTradeable) {
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }
                     }}

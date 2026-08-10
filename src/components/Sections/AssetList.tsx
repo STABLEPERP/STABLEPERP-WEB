@@ -282,7 +282,7 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
                   : '—'}
               </div>
               <div style={{ color: isPositive ? '#5EEAD4' : '#F87171', fontSize: '0.75rem', marginTop: '0.2rem' }}>
-                {asset.change24h !== 0 ? `${isPositive ? '+' : ''}${asset.change24h.toFixed(2)}%` : '—'}
+                {asset.change24h !== 0 ? `${isPositive ? '+' : ''}${asset.change24h.toFixed(2)}% (24H)` : '—'}
               </div>
             </div>
           </div>

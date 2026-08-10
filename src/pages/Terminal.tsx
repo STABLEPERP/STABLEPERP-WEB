@@ -35,7 +35,10 @@ export function Terminal() {
 
       {/* LEFT SIDEBAR: MARKETS */}
       <div className={`terminal-panel terminal-left ${mobileTab !== 'chart' ? 'mobile-hidden' : ''}`}>
-        <div style={{ padding: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', fontSize: '0.75rem', color: '#A3A3A3', letterSpacing: '0.1em' }}>MARKETS</div>
+        <div style={{ padding: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+          <div style={{ fontSize: '0.75rem', color: '#A3A3A3', letterSpacing: '0.1em', fontWeight: 'bold' }}>MARKETS</div>
+          <div style={{ fontSize: '0.65rem', color: '#6B7280', marginTop: '0.25rem' }}>* Data reflects rolling 24H performance</div>
+        </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
           <AssetList onSelectAsset={setSelectedAsset} selectedAssetId={selectedAsset?.id} onPricesUpdate={setLivePrices} />
         </div>
@@ -51,7 +54,7 @@ export function Terminal() {
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#FFF' }}>{headerAsset && headerAsset.price > 0 ? `$${headerAsset.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}</div>
             <div style={{ fontSize: '0.875rem', color: headerAsset && headerAsset.change24h >= 0 ? '#5EEAD4' : '#F87171' }}>
-              {headerAsset && headerAsset.price > 0 ? `${headerAsset.change24h >= 0 ? '+' : ''}${headerAsset.change24h.toFixed(2)}%` : '-'}
+              {headerAsset && headerAsset.price > 0 ? `${headerAsset.change24h >= 0 ? '+' : ''}${headerAsset.change24h.toFixed(2)}% (24H)` : '-'}
             </div>
           </div>
         </div>
@@ -77,7 +80,16 @@ export function Terminal() {
           </button>
         </div>
         {bottomTab === 'chain' ? (
-          <MarketList onSelectMarket={setSelectedMarket} selectedMarketId={selectedMarket?.id} filterAssetSymbol={selectedAsset?.symbol} />
+          <MarketList 
+            onSelectMarket={(mkt) => {
+              setSelectedMarket(mkt);
+              if (window.innerWidth <= 1024) {
+                setMobileTab('order');
+              }
+            }} 
+            selectedMarketId={selectedMarket?.id} 
+            filterAssetSymbol={selectedAsset?.symbol} 
+          />
         ) : (
           <UserPositions />
         )}
