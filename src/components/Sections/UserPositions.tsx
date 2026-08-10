@@ -4,6 +4,7 @@ import { HermesClient } from '@pythnetwork/hermes-client';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { useNetwork } from '../../contexts/NetworkContext';
 
 // Resolve underlying mint prefix to Binance symbol for live price
 const MINT_PREFIX_TO_SYMBOL: Record<string, string> = {
@@ -39,6 +40,7 @@ export const UserPositions: FC = () => {
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(false);
   const [prices, setPrices] = useState<Record<string, number>>({});
+  const { network, apiUrl } = useNetwork();
   const wsRef = useRef<WebSocket | null>(null);
   const hermesRef = useRef(new HermesClient("https://hermes.pyth.network"));
 
@@ -82,10 +84,9 @@ export const UserPositions: FC = () => {
         setLoading(true);
 
         // Fetch markets from backend API
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
         let fetchedApiMarkets = [];
         try {
-           const res = await fetch(`${API_URL}/markets`);
+           const res = await fetch(`${apiUrl}/markets?network=${network}`);
            const json = await res.json();
            if (json.success) {
              fetchedApiMarkets = json.data;
@@ -210,7 +211,7 @@ export const UserPositions: FC = () => {
     fetchPositions();
     const interval = setInterval(fetchPositions, 15000);
     return () => clearInterval(interval);
-  }, [publicKey, program, connection]);
+  }, [publicKey, program, connection, network, apiUrl]);
 
   // Poll Pyth Prices for positions with pythFeedIds
   useEffect(() => {

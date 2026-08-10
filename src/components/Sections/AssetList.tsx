@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { FC } from 'react';
 import { HermesClient } from '@pythnetwork/hermes-client';
+import { useNetwork } from '../../contexts/NetworkContext';
 
 export interface Asset {
   id: string;
@@ -54,6 +55,7 @@ const buildInitialMap = (): Record<string, Asset> => {
 export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, onPricesUpdate }) => {
   const [activeTab, setActiveTab] = useState<'crypto' | 'stocks'>('stocks');
   const [assetMap, setAssetMap] = useState<Record<string, Asset>>(buildInitialMap);
+  const { apiUrl } = useNetwork();
   const hasAutoSelected = useRef(false);
   const wsRef = useRef<WebSocket | null>(null);
   const hermesRef = useRef(new HermesClient("https://hermes.pyth.network"));
@@ -110,7 +112,6 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
   useEffect(() => {
     let pythInterval: NodeJS.Timeout;
     let changeInterval: NodeJS.Timeout;
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
     async function fetchPyth() {
       try {
@@ -142,7 +143,7 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
     async function fetchStockChanges() {
       try {
         const symbolsStr = PYTH_SYMBOLS.map(p => p.symbol).join(',');
-        const res = await fetch(`${API_URL}/stocks/change?symbols=${symbolsStr}`);
+        const res = await fetch(`${apiUrl}/stocks/change?symbols=${symbolsStr}`);
         const json = await res.json();
         
         if (json.success && json.data) {
@@ -176,7 +177,7 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
       clearInterval(pythInterval);
       clearInterval(changeInterval);
     };
-  }, []);
+  }, [apiUrl]);
 
   // Notify parent of price updates safely outside the reducer
   useEffect(() => {

@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { Link } from 'react-router-dom';
+import { useNetwork } from '../contexts/NetworkContext';
 
 interface NavbarProps {
   variant?: 'landing' | 'terminal';
@@ -8,6 +9,7 @@ interface NavbarProps {
 
 export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
   const isTerminal = variant === 'terminal';
+  const { network, setNetwork } = isTerminal ? useNetwork() : { network: 'devnet', setNetwork: () => {} };
 
   return (
     <nav style={{
@@ -51,8 +53,32 @@ export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
             padding: '0.25rem',
             border: '1px solid rgba(255,255,255,0.1)'
           }}>
-            <span style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', fontFamily: "'Space Mono', monospace", color: '#A3A3A3', cursor: 'not-allowed' }}>Mainnet</span>
-            <span style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', fontFamily: "'Space Mono', monospace", color: '#5EEAD4', backgroundColor: 'rgba(94, 234, 212, 0.1)', borderRadius: '4px' }}>Devnet</span>
+            <span 
+              onClick={() => setNetwork('mainnet-beta')}
+              style={{ 
+                padding: '0.25rem 0.75rem', 
+                fontSize: '0.75rem', 
+                fontFamily: "'Space Mono', monospace", 
+                color: network === 'mainnet-beta' ? '#5EEAD4' : '#A3A3A3', 
+                backgroundColor: network === 'mainnet-beta' ? 'rgba(94, 234, 212, 0.1)' : 'transparent',
+                borderRadius: '4px',
+                cursor: 'pointer' 
+              }}>
+              Mainnet
+            </span>
+            <span 
+              onClick={() => setNetwork('devnet')}
+              style={{ 
+                padding: '0.25rem 0.75rem', 
+                fontSize: '0.75rem', 
+                fontFamily: "'Space Mono', monospace", 
+                color: network === 'devnet' ? '#5EEAD4' : '#A3A3A3', 
+                backgroundColor: network === 'devnet' ? 'rgba(94, 234, 212, 0.1)' : 'transparent',
+                borderRadius: '4px',
+                cursor: 'pointer' 
+              }}>
+              Devnet
+            </span>
           </div>
         )}
         <WalletMultiButton style={{ backgroundColor: '#5EEAD4', color: '#0A0A0A', fontFamily: "'Space Mono', monospace", borderRadius: '8px', height: '36px', padding: '0 1rem', fontWeight: 'bold', fontSize: '0.875rem' }} />

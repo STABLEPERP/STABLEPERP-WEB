@@ -5,10 +5,13 @@ import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
 import '@solana/wallet-adapter-react-ui/styles.css';
+import { useNetwork } from '../contexts/NetworkContext';
 
 export const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    // Load from .env securely, fallback to public devnet if not found
-    const endpoint = useMemo(() => import.meta.env.VITE_RPC_URL || clusterApiUrl('devnet'), []);
+    const { rpcUrl } = useNetwork();
+    
+    // Fallback to clusterApiUrl if rpcUrl is empty (though it shouldn't be)
+    const endpoint = useMemo(() => rpcUrl || clusterApiUrl('devnet'), [rpcUrl]);
 
     const wallets = useMemo(
         () => [

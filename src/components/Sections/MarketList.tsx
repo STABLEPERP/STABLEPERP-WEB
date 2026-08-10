@@ -4,6 +4,7 @@ import { HermesClient } from '@pythnetwork/hermes-client';
 
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
 import { isUSMarketOpen } from '../../utils/marketHours';
+import { useNetwork } from '../../contexts/NetworkContext';
 
 interface Market {
   id: string;
@@ -32,6 +33,7 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
   const [loading, setLoading] = useState(true);
   const [pythPrices, setPythPrices] = useState<Record<string, number>>({});
   const program = useStableperpProgram();
+  const { network, apiUrl } = useNetwork();
   const hermesRef = useRef(new HermesClient("https://hermes.pyth.network"));
 
   useEffect(() => {
@@ -39,8 +41,7 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
       try {
         setLoading(true);
         // Fetch markets from backend API
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-        const res = await fetch(`${API_URL}/markets`);
+        const res = await fetch(`${apiUrl}/markets?network=${network}`);
         const json = await res.json();
         
         if (!json.success) throw new Error('Failed to fetch markets from API');
@@ -98,7 +99,7 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
     }
 
     fetchMarkets();
-  }, [program]);
+  }, [program, network, apiUrl]);
 
   // Poll Pyth Prices for the displayed markets
   useEffect(() => {
