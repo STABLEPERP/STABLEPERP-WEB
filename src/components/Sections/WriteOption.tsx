@@ -71,7 +71,7 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
 
   const handleWrite = async (e: React.FormEvent) => {
     e.preventDefault();
-    const quantity = parseFloat(qty) * 10 ** 9;
+    const quantity = Math.floor(parseFloat(qty) * 10 ** 6);
     const premiumPrice = parseFloat(premium) * 10 ** 6;
     
     if (isNaN(quantity) || quantity <= 0 || isNaN(premiumPrice) || premiumPrice <= 0) {
@@ -169,7 +169,8 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
       }
 
       let errorMessage = 'Transaction failed! Please ensure you have sufficient Collateral (Asset) and Solana for gas fees.';
-      const errString = (err.message || '') + JSON.stringify(err);
+      const logsStr = err.logs ? err.logs.join(' ') : '';
+      const errString = (err.message || '') + JSON.stringify(err) + logsStr;
       
       if (errString.includes('0x1')) {
           errorMessage = 'Insufficient Token Balance! You do not have enough of the required collateral asset in your wallet to complete this transaction.';
@@ -209,7 +210,7 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
         </div>
       </div>
 
-      <label style={labelStyle}>Quantity to Lock</label>
+      <label style={labelStyle}>Number of Call Contracts</label>
       <input type="number" step="0.01" placeholder="0.00" style={inputStyle} value={qty} onChange={(e) => setQty(e.target.value)} />
 
       <label style={labelStyle}>Target Strike Price (USDC)</label>
@@ -222,7 +223,7 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
         {market ? market.expiry : 'Select a market first'}
       </div>
 
-      <label style={labelStyle}>Premium Price (USDC)</label>
+      <label style={labelStyle}>Premium per Call Contract (USDC)</label>
       <input type="number" step="0.01" placeholder="0.00" style={inputStyle} value={premium} onChange={(e) => setPremium(e.target.value)} />
 
       <div style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px dashed rgba(255,255,255,0.1)' }}>
@@ -264,7 +265,7 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
         }
       }}
       >
-        {loading ? 'WAITING FOR WALLET...' : 'MINT OPTION'}
+        {loading ? 'WAITING FOR WALLET...' : 'SELL CALL OPTION'}
       </button>
       <TxModal
         isOpen={modalState.isOpen}

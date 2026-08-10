@@ -183,8 +183,8 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
           errorMessage = 'Account Owned By Wrong Program (0xbbf). This usually means the market data is outdated. Please refresh the page.';
       } else if (errString.includes('User rejected')) {
           errorMessage = 'Transaction was rejected by the user.';
-      } else if (errString.includes('InsufficientOptions') || errString.includes('6015')) {
-          errorMessage = 'Insufficient Options! The writer does not have enough options available to fill your requested quantity.';
+      } else if (errString.includes('6001') || errString.includes('0x1771') || errString.includes('InsufficientOptions')) {
+          errorMessage = 'Insufficient Options! The writer does not have enough options available to fill your requested quantity. Please write an option first.';
       } else if (errString.includes('CannotTradeWithSelf') || errString.includes('6010')) {
           errorMessage = 'Wash Trading Blocked! You cannot buy an option from your own writer pool.';
       }
@@ -219,12 +219,12 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
         </div>
       </div>
 
-      <label style={labelStyle}>Quantity to Buy</label>
+      <label style={labelStyle}>Number of Call Contracts</label>
       <input type="number" step="1" placeholder="0" style={inputStyle} value={qty} onChange={(e) => setQty(e.target.value)} />
 
       <div style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px dashed rgba(255,255,255,0.1)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ color: '#A3A3A3', fontSize: '0.75rem' }}>Premium per Option</span>
+          <span style={{ color: '#A3A3A3', fontSize: '0.75rem' }}>Premium per Call Contract</span>
           <span style={{ color: '#FFF', fontSize: '0.75rem' }}>${premiumPerOption.toFixed(2)} USDC</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
@@ -261,7 +261,7 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
         }
       }}
       >
-        {loading ? 'WAITING FOR WALLET...' : 'EXECUTE TRADE'}
+        {loading ? 'WAITING FOR WALLET...' : 'BUY CALL OPTION'}
       </button>
       <TxModal
         isOpen={modalState.isOpen}

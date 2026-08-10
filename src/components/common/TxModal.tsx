@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { useNetwork } from '../../contexts/NetworkContext';
 
 interface TxModalProps {
   isOpen: boolean;
@@ -10,6 +11,8 @@ interface TxModalProps {
 }
 
 export const TxModal: FC<TxModalProps> = ({ isOpen, type, title, message, txSignature, onClose }) => {
+  const { network } = useNetwork();
+  
   if (!isOpen) return null;
 
   const handleCopy = () => {
@@ -73,7 +76,7 @@ export const TxModal: FC<TxModalProps> = ({ isOpen, type, title, message, txSign
             <div style={{ marginBottom: '0.5rem', fontWeight: 'bold', color: '#FFF' }}>Transaction Signature:</div>
             {txSignature}
             
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
               <button
                 onClick={handleCopy}
                 style={{
@@ -85,13 +88,15 @@ export const TxModal: FC<TxModalProps> = ({ isOpen, type, title, message, txSign
                   cursor: 'pointer',
                   fontSize: '0.875rem',
                   fontWeight: 500,
-                  transition: 'background 0.2s'
+                  transition: 'background 0.2s',
+                  width: '100%',
+                  boxSizing: 'border-box'
                 }}
               >
                 Copy
               </button>
               <a
-                href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
+                href={`https://solscan.io/tx/${txSignature}${network === 'mainnet-beta' ? '' : `?cluster=${network}`}`}
                 target="_blank"
                 rel="noreferrer"
                 style={{
@@ -104,7 +109,9 @@ export const TxModal: FC<TxModalProps> = ({ isOpen, type, title, message, txSign
                   fontSize: '0.875rem',
                   fontWeight: 500,
                   textDecoration: 'none',
-                  display: 'inline-block'
+                  display: 'block',
+                  width: '100%',
+                  boxSizing: 'border-box'
                 }}
               >
                 View Explorer

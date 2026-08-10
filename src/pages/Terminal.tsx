@@ -120,13 +120,13 @@ export function Terminal() {
             onClick={() => setOrderTab('buy')}
             style={{ flex: 1, padding: '1rem', backgroundColor: orderTab === 'buy' ? 'rgba(94, 234, 212, 0.1)' : 'transparent', color: orderTab === 'buy' ? '#5EEAD4' : '#A3A3A3', border: 'none', borderBottom: orderTab === 'buy' ? '2px solid #5EEAD4' : '2px solid transparent', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 'bold' }}
           >
-            Buy Option
+            Buy Call
           </button>
           <button 
             onClick={() => setOrderTab('write')}
             style={{ flex: 1, padding: '1rem', backgroundColor: orderTab === 'write' ? 'rgba(94, 234, 212, 0.1)' : 'transparent', color: orderTab === 'write' ? '#5EEAD4' : '#A3A3A3', border: 'none', borderBottom: orderTab === 'write' ? '2px solid #5EEAD4' : '2px solid transparent', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 'bold' }}
           >
-            Write Option
+            Sell Call (Write)
           </button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
