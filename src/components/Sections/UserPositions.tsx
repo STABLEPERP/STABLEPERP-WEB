@@ -113,7 +113,12 @@ export const UserPositions: FC = () => {
         const marketMap = new Map();
         markets.forEach((m: any) => marketMap.set(m.publicKey.toString(), m.account));
 
-        const formattedWritten: Position[] = writerPositions.map((wp: any) => {
+        const formattedWritten = writerPositions
+          .filter((wp: any) => {
+             // Only show positions that still have unsold or filled options
+             return wp.account.mintedAmount.toNumber() > 0 || wp.account.filledAmount.toNumber() > 0;
+          })
+          .map((wp: any) => {
           const mktId = wp.account.market.toString();
           const marketData = marketMap.get(mktId);
           let market = 'Unknown';

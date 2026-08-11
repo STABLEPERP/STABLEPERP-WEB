@@ -9,7 +9,8 @@ import { KYCDisclaimer } from '../components/common/KYCDisclaimer';
 import './Terminal.css';
 
 export function Terminal() {
-  const [orderTab, setOrderTab] = useState<'buy' | 'write'>('buy');
+  const [orderAction, setOrderAction] = useState<'buy' | 'sell'>('buy');
+  const [orderType, setOrderType] = useState<'call' | 'put'>('call');
   const [bottomTab, setBottomTab] = useState<'chain' | 'positions'>('chain');
   const [mobileTab, setMobileTab] = useState<'chart' | 'chain' | 'order'>('chart');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
@@ -115,22 +116,38 @@ export function Terminal() {
 
       {/* RIGHT SIDEBAR: ORDER ENTRY */}
       <div className={`terminal-panel terminal-right ${mobileTab !== 'order' ? 'mobile-hidden' : ''}`}>
-        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', padding: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
           <button 
-            onClick={() => setOrderTab('buy')}
-            style={{ flex: 1, padding: '1rem', backgroundColor: orderTab === 'buy' ? 'rgba(94, 234, 212, 0.1)' : 'transparent', color: orderTab === 'buy' ? '#5EEAD4' : '#A3A3A3', border: 'none', borderBottom: orderTab === 'buy' ? '2px solid #5EEAD4' : '2px solid transparent', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 'bold' }}
+            onClick={() => { setOrderAction('buy'); setOrderType('call'); }}
+            style={{ padding: '0.75rem', backgroundColor: orderAction === 'buy' && orderType === 'call' ? 'rgba(94, 234, 212, 0.1)' : 'transparent', color: orderAction === 'buy' && orderType === 'call' ? '#5EEAD4' : '#A3A3A3', border: orderAction === 'buy' && orderType === 'call' ? '1px solid #5EEAD4' : '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 'bold', transition: 'all 0.2s' }}
           >
             Buy Call
           </button>
           <button 
-            onClick={() => setOrderTab('write')}
-            style={{ flex: 1, padding: '1rem', backgroundColor: orderTab === 'write' ? 'rgba(94, 234, 212, 0.1)' : 'transparent', color: orderTab === 'write' ? '#5EEAD4' : '#A3A3A3', border: 'none', borderBottom: orderTab === 'write' ? '2px solid #5EEAD4' : '2px solid transparent', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 'bold' }}
+            onClick={() => { setOrderAction('buy'); setOrderType('put'); }}
+            style={{ padding: '0.75rem', backgroundColor: orderAction === 'buy' && orderType === 'put' ? 'rgba(94, 234, 212, 0.1)' : 'transparent', color: orderAction === 'buy' && orderType === 'put' ? '#5EEAD4' : '#A3A3A3', border: orderAction === 'buy' && orderType === 'put' ? '1px solid #5EEAD4' : '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 'bold', transition: 'all 0.2s' }}
           >
-            Sell Call (Write)
+            Buy Put
+          </button>
+          <button 
+            onClick={() => { setOrderAction('sell'); setOrderType('call'); }}
+            style={{ padding: '0.75rem', backgroundColor: orderAction === 'sell' && orderType === 'call' ? 'rgba(94, 234, 212, 0.1)' : 'transparent', color: orderAction === 'sell' && orderType === 'call' ? '#5EEAD4' : '#A3A3A3', border: orderAction === 'sell' && orderType === 'call' ? '1px solid #5EEAD4' : '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 'bold', transition: 'all 0.2s' }}
+          >
+            Sell Call
+          </button>
+          <button 
+            onClick={() => { setOrderAction('sell'); setOrderType('put'); }}
+            style={{ padding: '0.75rem', backgroundColor: orderAction === 'sell' && orderType === 'put' ? 'rgba(94, 234, 212, 0.1)' : 'transparent', color: orderAction === 'sell' && orderType === 'put' ? '#5EEAD4' : '#A3A3A3', border: orderAction === 'sell' && orderType === 'put' ? '1px solid #5EEAD4' : '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 'bold', transition: 'all 0.2s' }}
+          >
+            Sell Put
           </button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
-          {orderTab === 'buy' ? <BuyOption market={selectedMarket} /> : <WriteOption market={selectedMarket} />}
+          {orderAction === 'buy' ? (
+            <BuyOption market={selectedMarket} optionType={orderType} />
+          ) : (
+            <WriteOption market={selectedMarket} optionType={orderType} />
+          )}
           <KYCDisclaimer />
         </div>
       </div>

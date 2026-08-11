@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { FC } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useStableperpProgram } from '../../hooks/useStableperpProgram';
@@ -10,32 +10,10 @@ import { TxModal } from '../common/TxModal';
 
 interface WriteOptionProps {
   market: any | null;
+  optionType?: 'call' | 'put';
 }
 
-const inputStyle = {
-  width: '100%',
-  padding: '0.5rem 0.75rem',
-  backgroundColor: 'rgba(0,0,0,0.5)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: '8px',
-  color: '#FFF',
-  fontFamily: "'Space Mono', monospace",
-  fontSize: '0.875rem',
-  outline: 'none',
-  marginBottom: '1.5rem',
-  boxSizing: 'border-box' as const
-};
-
-const labelStyle = {
-  display: 'block',
-  color: '#A3A3A3',
-  fontSize: '0.75rem',
-  marginBottom: '0.5rem',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.05em'
-};
-
-export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
+export const WriteOption: FC<WriteOptionProps> = ({ market, optionType = 'call' }) => {
   const [qty, setQty] = useState('');
   const [premium, setPremium] = useState('');
   const [loading, setLoading] = useState(false);
@@ -48,26 +26,6 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
   const program = useStableperpProgram();
-  const [underlyingBalance, setUnderlyingBalance] = useState<number | null>(null);
-
-  // Fetch Underlying Balance
-  useEffect(() => {
-    async function fetchBalance() {
-      if (!publicKey || !market || !market.underlyingMint) {
-        setUnderlyingBalance(null);
-        return;
-      }
-      try {
-        const { getAssociatedTokenAddressSync } = await import('@solana/spl-token');
-        const underlyingAta = getAssociatedTokenAddressSync(new PublicKey(market.underlyingMint), publicKey);
-        const bal = await connection.getTokenAccountBalance(underlyingAta);
-        setUnderlyingBalance(bal.value.uiAmount);
-      } catch (e) {
-        setUnderlyingBalance(0);
-      }
-    }
-    fetchBalance();
-  }, [publicKey, market, connection]);
 
   const handleWrite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,6 +84,35 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
       if (createWriterUnderlyingAtaIx) transaction.add(createWriterUnderlyingAtaIx);
       if (createCollateralVaultIx) transaction.add(createCollateralVaultIx);
       if (createEscrowOptionVaultIx) transaction.add(createEscrowOptionVaultIx);
+
+      // AUTO-MINT LOGIC (For Admin/Deployer only)
+      // If selling a Call on a synthetic asset, the admin needs the underlying token.
+      if (optionType === 'call' && market.isSynthetic) {
+        try {
+          const { createMintToInstruction } = await import('@solana/spl-token');
+          let currentBalance = 0;
+          try {
+            const bal = await connection.getTokenAccountBalance(writerUnderlyingAta);
+            currentBalance = bal.value.uiAmount || 0;
+          } catch (e) {
+            // ATA probably doesn't exist yet, balance is 0
+          }
+          
+          if (currentBalance < parseFloat(qty)) {
+            // Mint 10,000 tokens automatically to the admin so they have enough collateral
+            const mintIx = createMintToInstruction(
+              underlyingMint,
+              writerUnderlyingAta,
+              publicKey, // Must be the mint authority (admin)
+              10000 * 10 ** 6
+            );
+            transaction.add(mintIx);
+            console.log('✨ Auto-minting 10,000 synthetic tokens to admin for collateral...');
+          }
+        } catch (err) {
+          console.error('Failed to add auto-mint instruction', err);
+        }
+      }
 
       const writeOptionIx = await program.methods.writeOption(
         new anchor.BN(quantity), 
@@ -193,78 +180,99 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
 
   return (
     <form onSubmit={handleWrite} style={{ fontFamily: "'Space Mono', monospace" }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Asset</span>
-          <span style={{ color: '#FFF', fontSize: '0.85rem' }}>{market ? market.symbol : '-'}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Strike</span>
-          <span style={{ color: '#FFF', fontSize: '0.85rem' }}>{market ? `$${market.strike}` : '-'}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ color: '#A3A3A3', fontSize: '0.85rem' }}>Available Underlying Balance</span>
-          <span style={{ color: '#5EEAD4', fontSize: '0.85rem' }}>
-            {underlyingBalance !== null ? `${underlyingBalance.toLocaleString()} ${market?.symbol?.split('/')[0] || 'Token'}` : '-'}
-          </span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <span style={{ color: '#A3A3A3', fontSize: '0.875rem' }}>Strike</span>
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '120px', justifyContent: 'space-between' }}>
+          <span style={{ color: '#FFF' }}>{market ? market.strike : '-'}</span>
+          <span style={{ color: '#A3A3A3', fontSize: '0.6rem' }}>▼</span>
         </div>
       </div>
 
-      <label style={labelStyle}>Number of Put Contracts</label>
-      <input type="number" step="0.01" placeholder="0.00" style={inputStyle} value={qty} onChange={(e) => setQty(e.target.value)} />
-
-      <label style={labelStyle}>Target Strike Price (USDC)</label>
-      <div style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.05)', color: '#A3A3A3', cursor: 'not-allowed' }}>
-        {market ? `$${market.strike}` : 'Select a market first'}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <span style={{ color: '#A3A3A3', fontSize: '0.875rem' }}>Expiry</span>
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '120px', justifyContent: 'space-between' }}>
+          <span style={{ color: '#FFF' }}>{market ? market.expiry : '-'}</span>
+          <span style={{ color: '#A3A3A3', fontSize: '0.6rem' }}>▼</span>
+        </div>
       </div>
 
-      <label style={labelStyle}>Expiry Date</label>
-      <div style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.05)', color: '#A3A3A3', cursor: 'not-allowed' }}>
-        {market ? market.expiry : 'Select a market first'}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <span style={{ color: '#A3A3A3', fontSize: '0.875rem' }}>Contracts</span>
+        <div style={{ display: 'flex', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
+          <button type="button" onClick={() => setQty(String(Math.max(0, Number(qty || 0) - 1)))} style={{ padding: '0.5rem 1rem', backgroundColor: 'transparent', border: 'none', color: '#A3A3A3', cursor: 'pointer', borderRight: '1px solid rgba(255,255,255,0.1)' }}>-</button>
+          <input type="number" step="1" placeholder="0" value={qty} onChange={(e) => setQty(e.target.value)} style={{ width: '60px', textAlign: 'center', backgroundColor: 'transparent', border: 'none', color: '#FFF', outline: 'none', fontFamily: "'Space Mono', monospace" }} />
+          <button type="button" onClick={() => setQty(String(Number(qty || 0) + 1))} style={{ padding: '0.5rem 1rem', backgroundColor: 'transparent', border: 'none', color: '#A3A3A3', cursor: 'pointer', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>+</button>
+        </div>
       </div>
 
-      <label style={labelStyle}>Premium per Put Contract (USDC)</label>
-      <input type="number" step="0.01" placeholder="0.00" style={inputStyle} value={premium} onChange={(e) => setPremium(e.target.value)} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <span style={{ color: '#A3A3A3', fontSize: '0.875rem' }}>Ask Premium</span>
+        <div style={{ display: 'flex', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
+          <input type="number" step="0.1" placeholder="e.g. 5" value={premium} onChange={(e) => setPremium(e.target.value)} style={{ width: '80px', textAlign: 'center', backgroundColor: 'transparent', border: 'none', color: '#FFF', outline: 'none', fontFamily: "'Space Mono', monospace" }} />
+          <span style={{ padding: '0.5rem', borderLeft: '1px solid rgba(255,255,255,0.1)', color: '#A3A3A3', fontSize: '0.75rem' }}>USDC</span>
+        </div>
+      </div>
 
-      <div style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px dashed rgba(255,255,255,0.1)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+      <div style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <span style={{ color: '#A3A3A3', fontSize: '0.75rem' }}>Premium Revenue</span>
+          <span style={{ color: '#5EEAD4', fontSize: '0.75rem' }}>${((Number(qty) || 0) * (Number(premium) || 0)).toFixed(2)}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
           <span style={{ color: '#A3A3A3', fontSize: '0.75rem' }}>Collateral Required</span>
-          <span style={{ color: '#FFF', fontSize: '0.75rem' }}>{(parseFloat(qty) || 0).toFixed(2)} {market?.symbol?.split('/')[0] || 'Token'}</span>
+          <span style={{ color: '#FFF', fontSize: '0.75rem' }}>{(Number(qty) || 0).toFixed(2)} {market?.symbol?.split('/')[0]}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <span style={{ color: '#5EEAD4', fontSize: '0.9rem', fontWeight: 'bold' }}>Total Premium Revenue</span>
-          <span style={{ color: '#5EEAD4', fontSize: '0.9rem', fontWeight: 'bold' }}>${((parseFloat(qty) || 0) * (parseFloat(premium) || 0)).toFixed(2)} USDC</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <span style={{ color: '#A3A3A3', fontSize: '0.75rem' }}>Max profit</span>
+          <span style={{ color: '#5EEAD4', fontSize: '0.75rem' }}>${((Number(qty) || 0) * (Number(premium) || 0)).toFixed(2)}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <span style={{ color: '#A3A3A3', fontSize: '0.75rem' }}>Max loss</span>
+          <span style={{ color: '#F87171', fontSize: '0.75rem' }}>Unlimited</span>
         </div>
       </div>
 
-      <button type="submit" disabled={loading} style={{
+      <div style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '1.5rem', position: 'relative', height: '140px' }}>
+         <div style={{ color: '#A3A3A3', fontSize: '0.75rem', position: 'absolute', top: '1rem', left: '1rem' }}>Payoff at expiry</div>
+         <div style={{ color: '#A3A3A3', fontSize: '0.75rem', position: 'absolute', top: '1rem', right: '1rem' }}>BE ${market ? (market.strike + (optionType === 'call' ? (Number(premium) || 0) : -(Number(premium) || 0))).toFixed(2) : '-'}</div>
+         
+         <div style={{ position: 'absolute', bottom: '1.5rem', left: '1rem', right: '1rem', height: '60px', borderBottom: '1px solid rgba(255,255,255,0.1)', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+            <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+               {optionType === 'call' ? (
+                 <>
+                   <polygon points="0,30 50,30 50,50 0,50" fill="rgba(94, 234, 212, 0.2)" />
+                   <polygon points="50,50 100,100 100,50" fill="rgba(248, 113, 113, 0.2)" />
+                   <polyline points="0,30 50,30 100,80" fill="none" stroke="#5EEAD4" strokeWidth="2" />
+                 </>
+               ) : (
+                 <>
+                   <polygon points="50,30 100,30 100,50 50,50" fill="rgba(94, 234, 212, 0.2)" />
+                   <polygon points="0,100 50,50 0,50" fill="rgba(248, 113, 113, 0.2)" />
+                   <polyline points="0,80 50,30 100,30" fill="none" stroke="#5EEAD4" strokeWidth="2" />
+                 </>
+               )}
+               <line x1="50" y1="0" x2="50" y2="100" stroke="rgba(255,255,255,0.2)" strokeDasharray="4" />
+            </svg>
+         </div>
+      </div>
+
+      <button type="submit" disabled={loading || !market || Number(qty) <= 0 || Number(premium) <= 0} style={{
         width: '100%',
-        padding: '0.625rem 1rem',
-        backgroundColor: loading ? 'rgba(94, 234, 212, 0.05)' : 'rgba(94, 234, 212, 0.1)',
-        color: '#5EEAD4',
-        border: '1px solid #5EEAD4',
+        padding: '1rem',
+        backgroundColor: '#5EEAD4',
+        color: '#0A0A0A',
+        border: 'none',
         borderRadius: '8px',
         fontFamily: "'Space Mono', monospace",
         fontWeight: 'bold',
-        fontSize: '0.875rem',
-        cursor: loading ? 'not-allowed' : 'pointer',
+        fontSize: '0.9rem',
+        cursor: (loading || !market || Number(qty) <= 0 || Number(premium) <= 0) ? 'not-allowed' : 'pointer',
+        opacity: (loading || !market || Number(qty) <= 0 || Number(premium) <= 0) ? 0.5 : 1,
         transition: 'all 0.2s',
-      }}
-      onMouseEnter={(e) => {
-        if(!loading) {
-          e.currentTarget.style.backgroundColor = '#5EEAD4';
-          e.currentTarget.style.color = '#0A0A0A';
-        }
-      }}
-      onMouseLeave={(e) => {
-        if(!loading) {
-          e.currentTarget.style.backgroundColor = 'rgba(94, 234, 212, 0.1)';
-          e.currentTarget.style.color = '#5EEAD4';
-        }
-      }}
-      >
-        {loading ? 'WAITING FOR WALLET...' : 'SELL PUT OPTION'}
+      }}>
+        {loading ? 'WAITING FOR WALLET...' : `Sell ${qty || 0} ${market?.symbol?.split('/')[0] || ''} ${market?.strike || ''} ${optionType === 'call' ? 'Call' : 'Put'}`}
       </button>
+
       <TxModal
         isOpen={modalState.isOpen}
         type={modalState.type}
