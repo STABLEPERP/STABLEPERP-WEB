@@ -210,7 +210,7 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
         </div>
       </div>
 
-      <label style={labelStyle}>Number of Call Contracts</label>
+      <label style={labelStyle}>Number of Put Contracts</label>
       <input type="number" step="0.01" placeholder="0.00" style={inputStyle} value={qty} onChange={(e) => setQty(e.target.value)} />
 
       <label style={labelStyle}>Target Strike Price (USDC)</label>
@@ -223,7 +223,7 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
         {market ? market.expiry : 'Select a market first'}
       </div>
 
-      <label style={labelStyle}>Premium per Call Contract (USDC)</label>
+      <label style={labelStyle}>Premium per Put Contract (USDC)</label>
       <input type="number" step="0.01" placeholder="0.00" style={inputStyle} value={premium} onChange={(e) => setPremium(e.target.value)} />
 
       <div style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px dashed rgba(255,255,255,0.1)' }}>
@@ -236,8 +236,6 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
           <span style={{ color: '#5EEAD4', fontSize: '0.9rem', fontWeight: 'bold' }}>${((parseFloat(qty) || 0) * (parseFloat(premium) || 0)).toFixed(2)} USDC</span>
         </div>
       </div>
-
-
 
       <button type="submit" disabled={loading} style={{
         width: '100%',
@@ -265,7 +263,7 @@ export const WriteOption: FC<WriteOptionProps> = ({ market }) => {
         }
       }}
       >
-        {loading ? 'WAITING FOR WALLET...' : 'SELL CALL OPTION'}
+        {loading ? 'WAITING FOR WALLET...' : 'SELL PUT OPTION'}
       </button>
       <TxModal
         isOpen={modalState.isOpen}

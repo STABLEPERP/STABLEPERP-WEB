@@ -219,12 +219,12 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
         </div>
       </div>
 
-      <label style={labelStyle}>Number of Call Contracts</label>
+      <label style={labelStyle}>Number of Put Contracts</label>
       <input type="number" step="1" placeholder="0" style={inputStyle} value={qty} onChange={(e) => setQty(e.target.value)} />
 
       <div style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px dashed rgba(255,255,255,0.1)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ color: '#A3A3A3', fontSize: '0.75rem' }}>Premium per Call Contract</span>
+          <span style={{ color: '#A3A3A3', fontSize: '0.75rem' }}>Premium per Put Contract</span>
           <span style={{ color: '#FFF', fontSize: '0.75rem' }}>${premiumPerOption.toFixed(2)} USDC</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
@@ -261,7 +261,7 @@ export const BuyOption: FC<BuyOptionProps> = ({ market }) => {
         }
       }}
       >
-        {loading ? 'WAITING FOR WALLET...' : 'BUY CALL OPTION'}
+        {loading ? 'WAITING FOR WALLET...' : 'BUY PUT OPTION'}
       </button>
       <TxModal
         isOpen={modalState.isOpen}
