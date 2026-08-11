@@ -28,7 +28,7 @@ function Landing() {
       </main>
 
       <section className="content-section">
-        <div className="section-grid">
+        <div id="vision" className="section-grid">
           <div className="glass-panel animate-fade-up delay-100">
             <div className="section-title">THE VISION</div>
             <h2 className="section-heading">Institutional-Grade Derivatives for Everyone.</h2>
@@ -45,7 +45,7 @@ function Landing() {
           </div>
         </div>
 
-        <div className="section-title animate-fade-up" style={{ textAlign: 'center', marginBottom: '3rem' }}>CORE INFRASTRUCTURE</div>
+        <div id="infrastructure" className="section-title animate-fade-up" style={{ textAlign: 'center', marginBottom: '3rem' }}>CORE INFRASTRUCTURE</div>
         <div className="feature-cards">
           <div className="feature-card animate-fade-up delay-100">
             <h3 className="feature-title">100% Collateralized</h3>
@@ -61,7 +61,7 @@ function Landing() {
           </div>
         </div>
 
-        <div className="section-title animate-fade-up" style={{ textAlign: 'center', marginTop: '6rem', marginBottom: '3rem' }}>SUPPORTED MARKETS</div>
+        <div id="markets" className="section-title animate-fade-up" style={{ textAlign: 'center', marginTop: '6rem', marginBottom: '3rem' }}>SUPPORTED MARKETS</div>
         <div className="glass-panel animate-fade-up delay-100" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 className="section-heading" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Trade Anything. Settle in USDC.</h2>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '800px' }}>
@@ -76,7 +76,7 @@ function Landing() {
           </p>
         </div>
 
-        <div className="section-title animate-fade-up" style={{ textAlign: 'center', marginTop: '6rem', marginBottom: '3rem' }}>ROADMAP</div>
+        <div id="roadmap" className="section-title animate-fade-up" style={{ textAlign: 'center', marginTop: '6rem', marginBottom: '3rem' }}>ROADMAP</div>
         <div className="feature-cards">
           <div className="feature-card animate-fade-up delay-100">
             <h3 className="feature-title" style={{ color: '#5EEAD4' }}>PHASE I: Genesis</h3>

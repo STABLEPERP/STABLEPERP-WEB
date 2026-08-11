@@ -18,15 +18,17 @@ export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
     <>
       <nav className={`navbar-container ${isTerminal ? 'navbar-terminal' : 'navbar-landing'}`}>
       <Link to="/" style={{ textDecoration: 'none' }}>
-        <div className="navbar-logo">
+        <div className="navbar-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src="/logo.png" alt="Stableperp Logo" style={{ height: '32px' }} />
           STABLEPERP {isTerminal && <span className="navbar-badge">TERMINAL</span>}
         </div>
       </Link>
       {!isTerminal && (
         <div className="navbar-links">
-          <a href="#" style={{ color: '#FFF', textDecoration: 'none' }}>Markets</a>
-          <a href="#" style={{ color: '#FFF', textDecoration: 'none' }}>Portfolio</a>
-          <a href="#" style={{ color: '#A3A3A3', textDecoration: 'none' }}>Docs</a>
+          <a href="#vision" style={{ color: '#FFF', textDecoration: 'none' }}>Vision</a>
+          <a href="#infrastructure" style={{ color: '#FFF', textDecoration: 'none' }}>Infrastructure</a>
+          <a href="#markets" style={{ color: '#FFF', textDecoration: 'none' }}>Markets</a>
+          <a href="#roadmap" style={{ color: '#A3A3A3', textDecoration: 'none' }}>Roadmap</a>
         </div>
       )}
       <div className="navbar-actions">
