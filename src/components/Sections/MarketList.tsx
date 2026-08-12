@@ -153,7 +153,7 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
   return (
     <div style={{ width: '100%', overflowX: 'auto' }}>
       
-      <table style={{ 
+      <table className="market-table" style={{ 
         width: '100%', 
         borderCollapse: 'collapse', 
         fontFamily: "'Space Mono', monospace", 
@@ -208,10 +208,10 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
                       }
                     }}
                   >
-                  <td style={{ padding: '1rem', color: '#5EEAD4' }}>{mkt.id.slice(0,4)}...{mkt.id.slice(-4)}</td>
-                  <td style={{ padding: '1rem', fontWeight: 'bold' }}>{mkt.symbol}</td>
-                  <td style={{ padding: '1rem' }}>${mkt.strike.toLocaleString()}</td>
-                  <td style={{ padding: '1rem', color: '#FCD34D' }}>
+                  <td data-label="MKT ID" style={{ padding: '1rem', color: '#5EEAD4' }}>{mkt.id.slice(0,4)}...{mkt.id.slice(-4)}</td>
+                  <td data-label="ASSET" style={{ padding: '1rem', fontWeight: 'bold' }}>{mkt.symbol}</td>
+                  <td data-label="STRIKE" style={{ padding: '1rem' }}>${mkt.strike.toLocaleString()}</td>
+                  <td data-label="MARK PRICE" style={{ padding: '1rem', color: '#FCD34D' }}>
                     {(() => {
                       if (!mkt.pythFeedId) return '-';
                       const strippedId = mkt.pythFeedId.startsWith('0x') ? mkt.pythFeedId.slice(2) : mkt.pythFeedId;
@@ -219,10 +219,10 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
                       return price ? `$${price.toFixed(2)}` : '-';
                     })()}
                   </td>
-                  <td style={{ padding: '1rem' }}>{mkt.expiry}</td>
-                  <td style={{ padding: '1rem', color: isCall ? '#5EEAD4' : '#F87171' }}>{isCall ? 'CALL' : 'PUT'}</td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>${typeof mkt.premiumAsk === 'number' ? mkt.premiumAsk.toFixed(2) : mkt.premiumAsk}</td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>{mkt.totalLiquidity}</td>
+                  <td data-label="EXPIRY" style={{ padding: '1rem' }}>{mkt.expiry}</td>
+                  <td data-label="TYPE" style={{ padding: '1rem', color: isCall ? '#5EEAD4' : '#F87171' }}>{isCall ? 'CALL' : 'PUT'}</td>
+                  <td data-label="PREMIUM" style={{ padding: '1rem', textAlign: 'right' }}>${typeof mkt.premiumAsk === 'number' ? mkt.premiumAsk.toFixed(2) : mkt.premiumAsk}</td>
+                  <td data-label="LIQ." style={{ padding: '1rem', textAlign: 'right' }}>{mkt.totalLiquidity}</td>
                 </tr>
               );
             })

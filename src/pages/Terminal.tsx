@@ -12,7 +12,6 @@ export function Terminal() {
   const [orderAction, setOrderAction] = useState<'buy' | 'sell'>('buy');
   const [orderType, setOrderType] = useState<'call' | 'put'>('call');
   const [bottomTab, setBottomTab] = useState<'chain' | 'positions'>('chain');
-  const [mobileTab, setMobileTab] = useState<'chart' | 'chain' | 'order'>('chart');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [selectedMarket, setSelectedMarket] = useState<any | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, Asset>>({});
@@ -34,21 +33,8 @@ export function Terminal() {
 
   return (
     <div className="terminal-layout">
-      {/* MOBILE NAVIGATION BAR */}
-      <div className="mobile-nav">
-        <button className={`mobile-nav-btn ${mobileTab === 'chart' ? 'active' : ''}`} onClick={() => setMobileTab('chart')}>
-          Chart
-        </button>
-        <button className={`mobile-nav-btn ${mobileTab === 'chain' ? 'active' : ''}`} onClick={() => setMobileTab('chain')}>
-          Chain
-        </button>
-        <button className={`mobile-nav-btn ${mobileTab === 'order' ? 'active' : ''}`} onClick={() => setMobileTab('order')}>
-          Order
-        </button>
-      </div>
-
       {/* LEFT SIDEBAR: MARKETS */}
-      <div className={`terminal-panel terminal-left ${mobileTab !== 'chart' ? 'mobile-hidden' : ''}`}>
+      <div className="terminal-panel terminal-left">
         <div style={{ padding: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
           <div style={{ fontSize: '0.75rem', color: '#A3A3A3', letterSpacing: '0.1em', fontWeight: 'bold' }}>MARKETS</div>
           <div style={{ fontSize: '0.65rem', color: '#6B7280', marginTop: '0.25rem' }}>* Data reflects rolling 24H performance</div>
@@ -59,7 +45,7 @@ export function Terminal() {
       </div>
 
       {/* CENTER TOP: CHART & HEADER */}
-      <div className={`terminal-panel terminal-center-top ${mobileTab !== 'chart' ? 'mobile-hidden' : ''}`}>
+      <div className="terminal-panel terminal-center-top">
         <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFF' }}>{headerAsset ? headerAsset.symbol : 'Select Asset'}</span>
@@ -83,8 +69,17 @@ export function Terminal() {
       </div>
 
       {/* CENTER BOTTOM: OPTION CHAIN / POSITIONS */}
-      <div className={`terminal-panel terminal-center-bottom ${mobileTab !== 'chain' ? 'mobile-hidden' : ''}`} style={{ padding: '1rem' }}>
-        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', marginBottom: '0.5rem' }}>
+      <div className="terminal-panel terminal-center-bottom" style={{ padding: '1rem', position: 'relative' }}>
+        <div style={{ 
+          display: 'flex', 
+          borderBottom: '1px solid rgba(255, 255, 255, 0.05)', 
+          marginBottom: '0.5rem',
+          position: 'sticky',
+          top: '-1rem', // offset the 1rem padding of the container
+          backgroundColor: 'rgba(20, 20, 20, 0.95)',
+          zIndex: 10,
+          paddingTop: '1rem'
+        }}>
           <button 
             onClick={() => setBottomTab('chain')}
             style={{ padding: '0.75rem 1rem', backgroundColor: 'transparent', color: bottomTab === 'chain' ? '#5EEAD4' : '#A3A3A3', border: 'none', borderBottom: bottomTab === 'chain' ? '2px solid #5EEAD4' : '2px solid transparent', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.1em' }}
@@ -102,9 +97,6 @@ export function Terminal() {
           <MarketList 
             onSelectMarket={(mkt) => {
               setSelectedMarket(mkt);
-              if (window.innerWidth <= 1024) {
-                setMobileTab('order');
-              }
             }} 
             selectedMarketId={selectedMarket?.id} 
             filterAssetSymbol={selectedAsset?.symbol} 
@@ -115,7 +107,7 @@ export function Terminal() {
       </div>
 
       {/* RIGHT SIDEBAR: ORDER ENTRY */}
-      <div className={`terminal-panel terminal-right ${mobileTab !== 'order' ? 'mobile-hidden' : ''}`}>
+      <div className="terminal-panel terminal-right">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', padding: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
           <button 
             onClick={() => { setOrderAction('buy'); setOrderType('call'); }}

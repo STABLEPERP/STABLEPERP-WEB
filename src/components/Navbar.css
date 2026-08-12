@@ -91,12 +91,16 @@
     display: none; /* Hide the TERMINAL badge on small screens to save space */
   }
 
+  .logo-text {
+    display: none; /* Hide the word STABLEPERP on mobile, leaving just the logo image */
+  }
+
   .navbar-links {
     display: none; /* Hide navigation links on mobile */
   }
 
   .navbar-actions {
-    gap: 0.5rem;
+    gap: 0.25rem;
   }
 
   .wallet-adapter-button {

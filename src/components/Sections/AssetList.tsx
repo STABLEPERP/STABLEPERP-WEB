@@ -225,8 +225,17 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', marginBottom: '0.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+      <div style={{ 
+        display: 'flex', 
+        borderBottom: '1px solid rgba(255, 255, 255, 0.05)', 
+        marginBottom: '0.5rem',
+        position: 'sticky',
+        top: 0,
+        backgroundColor: '#141414',
+        zIndex: 10,
+        paddingTop: '0.5rem' // extra padding to look good when stuck
+      }}>
         <button 
           onClick={() => handleTabChange('crypto')}
           style={{ flex: 1, padding: '0.5rem', backgroundColor: 'transparent', color: activeTab === 'crypto' ? '#5EEAD4' : '#A3A3A3', border: 'none', borderBottom: activeTab === 'crypto' ? '2px solid #5EEAD4' : '2px solid transparent', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}

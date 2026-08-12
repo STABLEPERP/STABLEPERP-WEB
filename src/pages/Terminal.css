@@ -117,23 +117,61 @@
   }
 
   .terminal-panel {
-    flex: 1;
-    min-height: 400px; /* Base for other panels */
+    flex: none;
+    height: auto;
+    min-height: min-content;
+    overflow: visible;
+    margin-bottom: 1rem;
   }
   
   .terminal-center-top {
-    min-height: 550px; /* Ensure chart is very tall on mobile */
+    min-height: 450px;
+    height: auto;
   }
 
   .terminal-left {
-    height: 180px; /* Markets list takes less height */
-    min-height: 180px;
-    flex: none;
-    margin-bottom: 1rem;
+    height: auto; 
+    min-height: min-content;
+    overflow-y: visible;
   }
+
 
   .mobile-hidden {
     display: none !important;
+  }
+
+  /* Responsive Market Table */
+  .market-table thead {
+    display: none;
+  }
+  .market-table tr {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .market-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: right !important;
+    align-items: center;
+  }
+  .market-table td:last-child {
+    border-bottom: none;
+  }
+  .market-table td::before {
+    content: attr(data-label);
+    color: #A3A3A3;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-align: left;
+    display: flex;
+    align-items: center;
   }
 }
 

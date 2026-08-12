@@ -20,14 +20,15 @@ export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
       <Link to="/" style={{ textDecoration: 'none' }}>
         <div className="navbar-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img src="/logo.png" alt="Stableperp Logo" style={{ height: '32px' }} />
-          STABLEPERP {isTerminal && <span className="navbar-badge">TERMINAL</span>}
+          <span className="logo-text">STABLEPERP</span>
+          {isTerminal && <span className="navbar-badge">TERMINAL</span>}
         </div>
       </Link>
       {!isTerminal && (
         <div className="navbar-links">
-          <a href="#vision" style={{ color: '#FFF', textDecoration: 'none' }}>Vision</a>
           <a href="#infrastructure" style={{ color: '#FFF', textDecoration: 'none' }}>Infrastructure</a>
           <a href="#markets" style={{ color: '#FFF', textDecoration: 'none' }}>Markets</a>
+          <Link to="/docs" style={{ color: '#5EEAD4', textDecoration: 'none' }}>Docs</Link>
           <a href="#roadmap" style={{ color: '#A3A3A3', textDecoration: 'none' }}>Roadmap</a>
         </div>
       )}
@@ -96,9 +97,10 @@ export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
     {!isTerminal && isMobileMenuOpen && (
       <div className="mobile-menu-overlay">
         <div className="mobile-menu-content">
-          <a href="#" onClick={() => setIsMobileMenuOpen(false)}>Markets</a>
-          <a href="#" onClick={() => setIsMobileMenuOpen(false)}>Portfolio</a>
-          <a href="#" onClick={() => setIsMobileMenuOpen(false)}>Docs</a>
+          <a href="#infrastructure" onClick={() => setIsMobileMenuOpen(false)}>Infrastructure</a>
+          <a href="#markets" onClick={() => setIsMobileMenuOpen(false)}>Markets</a>
+          <Link to="/docs" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#5EEAD4' }}>Docs</Link>
+          <a href="#roadmap" onClick={() => setIsMobileMenuOpen(false)}>Roadmap</a>
         </div>
       </div>
     )}
