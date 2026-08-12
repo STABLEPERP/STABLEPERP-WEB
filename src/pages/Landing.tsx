@@ -508,9 +508,28 @@ export default function StableperpLanding() {
 
       {/* FOOTER */}
       <footer style={{ background: FOREST2, color: MUT_DARK, padding: "44px 22px", display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
           <Logo size={24} glow />
           <Wordmark color={ON_DARK} size={20} />
+          <a 
+            href="https://x.com/stableperp" 
+            target="_blank" 
+            rel="noreferrer" 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              color: 'rgba(255,255,255,0.7)',
+              marginLeft: '16px',
+              transition: 'color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </a>
         </span>
         <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em" }}>
           $SPERP · {import.meta.env.VITE_CA ? (

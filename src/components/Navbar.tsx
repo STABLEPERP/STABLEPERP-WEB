@@ -78,6 +78,26 @@ export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
             </span>
           </div>
         )}
+        <a 
+          href="https://x.com/stableperp" 
+          target="_blank" 
+          rel="noreferrer" 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            color: isTerminal ? '#FFFFFF' : '#081A16',
+            marginRight: '12px',
+            opacity: 0.8,
+            transition: 'opacity 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </a>
         <WalletMultiButton className="wallet-adapter-button" style={{ backgroundColor: isTerminal ? '#5EEAD4' : '#97FCE4', color: isTerminal ? '#0A0A0A' : '#0A2622', fontFamily: isTerminal ? "'Space Mono', monospace" : "-apple-system, system-ui, sans-serif", borderRadius: '999px', height: '42px', padding: '0 1.5rem', fontWeight: 500, fontSize: '0.95rem', border: isTerminal ? 'none' : '1.5px solid #97FCE4' }} />
         {!isTerminal && (
           <button 
