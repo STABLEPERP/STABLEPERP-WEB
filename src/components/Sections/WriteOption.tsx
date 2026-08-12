@@ -101,18 +101,31 @@ export const WriteOption: FC<WriteOptionProps> = ({ market, optionType = 'call' 
             // ATA probably doesn't exist yet, balance is 0
           }
           
-          if (currentBalance < parseFloat(qty)) {
-            // Mint 10,000 tokens automatically to the admin so they have enough collateral
+          let collateralNeededUi = parseFloat(qty);
+          try {
+            const onchainMarket = await (program.account as any).market.fetch(marketPubkey);
+            if (onchainMarket.isSynthetic) {
+              const payoutCap = onchainMarket.payoutCap.toNumber() / 1e6; // e.g., 500,000
+              collateralNeededUi = parseFloat(qty) * payoutCap;
+            }
+          } catch (e) {
+            console.error("Failed to fetch onchain market for payout cap", e);
+            collateralNeededUi = parseFloat(qty) * 500000; // Fallback
+          }
+
+          if (currentBalance < collateralNeededUi) {
+            const amountToMintUi = collateralNeededUi - currentBalance + 100; // 100 buffer
+            // Mint tokens automatically to the admin so they have enough collateral
             const mintIx = createMintToInstruction(
               underlyingMint,
               writerUnderlyingAta,
               publicKey, // Must be the mint authority (admin)
-              10000 * 10 ** 6,
+              Math.ceil(amountToMintUi * 10 ** 6),
               [],
               tokenProgramId
             );
             transaction.add(mintIx);
-            console.log('✨ Auto-minting 10,000 synthetic tokens to admin for collateral...');
+            console.log(`✨ Auto-minting ${Math.ceil(amountToMintUi)} synthetic tokens to admin for collateral...`);
           }
         } catch (err) {
           console.error('Failed to add auto-mint instruction', err);
