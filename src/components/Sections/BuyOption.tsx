@@ -94,6 +94,9 @@ export const BuyOption: FC<BuyOptionProps> = ({ market, optionType = 'call' }) =
       if (createBuyerOptionAtaIx) transaction.add(createBuyerOptionAtaIx);
       if (createBuyerQuoteAtaIx) transaction.add(createBuyerQuoteAtaIx);
 
+      const optionMintInfo = await connection.getAccountInfo(optionMint);
+      const tokenProgramId = optionMintInfo?.owner || new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+
       const buyOptionIx = await program.methods.buyOption(
         new anchor.BN(quantity)
       ).accounts({
@@ -106,7 +109,7 @@ export const BuyOption: FC<BuyOptionProps> = ({ market, optionType = 'call' }) =
         optionMint,
         quoteMint,
         buyer: publicKey,
-        tokenProgram: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        tokenProgram: tokenProgramId,
         associatedTokenProgram: new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'),
         systemProgram: SystemProgram.programId,
       }).instruction();

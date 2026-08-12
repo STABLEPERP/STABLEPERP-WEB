@@ -87,6 +87,9 @@ export const WriteOption: FC<WriteOptionProps> = ({ market, optionType = 'call' 
 
       // AUTO-MINT LOGIC (For Admin/Deployer only)
       // If selling a Call on a synthetic asset, the admin needs the underlying token.
+      const underlyingMintInfo = await connection.getAccountInfo(underlyingMint);
+      const tokenProgramId = underlyingMintInfo?.owner || new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+
       if (optionType === 'call' && market.isSynthetic) {
         try {
           const { createMintToInstruction } = await import('@solana/spl-token');
@@ -104,7 +107,9 @@ export const WriteOption: FC<WriteOptionProps> = ({ market, optionType = 'call' 
               underlyingMint,
               writerUnderlyingAta,
               publicKey, // Must be the mint authority (admin)
-              10000 * 10 ** 6
+              10000 * 10 ** 6,
+              [],
+              tokenProgramId
             );
             transaction.add(mintIx);
             console.log('✨ Auto-minting 10,000 synthetic tokens to admin for collateral...');
@@ -126,7 +131,7 @@ export const WriteOption: FC<WriteOptionProps> = ({ market, optionType = 'call' 
         escrowOptionVault,
         writer: publicKey,
         underlyingMint,
-        tokenProgram: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        tokenProgram: tokenProgramId,
         associatedTokenProgram: new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'),
         systemProgram: SystemProgram.programId,
       }).instruction();
