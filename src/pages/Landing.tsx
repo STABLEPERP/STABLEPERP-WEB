@@ -156,7 +156,7 @@ const STACK = [
 ];
 
 function Box({ item }: any) {
-  const { gx, gy, h, label, flag } = item;
+  const { gx, gy, h, flag } = item;
   const top = h, base = 0;
   const w = 1.0;
   const A = iso(gx, gy, top), B = iso(gx + w, gy, top), C = iso(gx + w, gy + w, top), D = iso(gx, gy + w, top);
@@ -166,7 +166,6 @@ function Box({ item }: any) {
   const leftC = flag ? "#37B79A" : "#132E28";
   const poly = (pts: any, fill: any) => <polygon points={pts.map((p: any) => `${p.x},${p.y}`).join(" ")} fill={fill} stroke="rgba(151,252,228,0.22)" strokeWidth={0.8} />;
   const rf = [B, C, C2, B2], lf = [D, C, C2, D2];
-  const lc = { x: (B.x + C.x + C2.x + B2.x) / 4, y: (B.y + C.y + C2.y + B2.y) / 4 };
   return (
     <g>
       {poly(lf, leftC)}{poly(rf, rightC)}{poly([A, B, C, D], topC)}
@@ -305,36 +304,65 @@ const Pill = ({ children, filled, to = "#" }: any) => (
 
 function LiquidLogo() {
   return (
-    <div style={{ position: 'relative', width: 200, height: 240, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{
+      position: 'relative', width: 90, height: 200,
+      margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center'
+    }}>
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
-        <filter id="liquid-filter">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
-          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="liquid" />
-          <feBlend in="SourceGraphic" in2="liquid" />
-        </filter>
+        <defs>
+          <filter id="liquid-goo" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur" />
+            <feColorMatrix in="blur" mode="matrix"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8"
+              result="goo" />
+            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+          </filter>
+        </defs>
       </svg>
+
       <div style={{
-        filter: 'url(#liquid-filter)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', inset: 0
+        filter: 'url(#liquid-goo)',
+        width: '100%', height: '100%',
+        position: 'absolute',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <div className="liquid-blob-top" style={{ background: '#0A2622', width: 90, height: 90, borderRadius: '50%', position: 'absolute' }}></div>
-        <div className="liquid-logo-bottom" style={{ position: 'absolute' }}>
-          <Logo size={112} glow={false} />
-        </div>
+        {/* Main blob A — top ↔ bottom */}
+        <div className="ll-a" style={{
+          position: 'absolute', width: 56, height: 56, borderRadius: '50%',
+          background: 'linear-gradient(145deg, #7EEEFF 0%, #00BFDE 100%)',
+        }} />
+        {/* Bridge blob — stays at center, permanently connects A & B */}
+        <div style={{
+          position: 'absolute', width: 18, height: 18, borderRadius: '50%',
+          background: '#00CCEC',
+          animation: 'll-bridge 9s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
+        }} />
+        {/* Main blob B — bottom ↔ top */}
+        <div className="ll-b" style={{
+          position: 'absolute', width: 56, height: 56, borderRadius: '50%',
+          background: 'linear-gradient(145deg, #00D4F0 0%, #00A8C8 100%)',
+        }} />
       </div>
+
       <style>{`
-        .liquid-blob-top {
-          animation: liquid-drop-top 4.5s ease-in-out infinite;
+        /* 
+          Smoothest possible CSS animation: only 2 keyframes + alternate direction.
+          Browser interpolates a perfect sine curve between start and end.
+          ll-a goes top→bottom, ll-b is the mirror via alternate-reverse.
+          No intermediate stops = zero jitter/jerk.
+        */
+        .ll-a { animation: ll-move 8s ease-in-out infinite alternate; }
+        .ll-b { animation: ll-move 8s ease-in-out infinite alternate-reverse; }
+
+        @keyframes ll-move {
+          from { transform: translateY(-50px); }
+          to   { transform: translateY(50px);  }
         }
-        .liquid-logo-bottom {
-          animation: liquid-drop-bottom 4.5s ease-in-out infinite;
-        }
-        @keyframes liquid-drop-top {
-          0%, 15%, 85%, 100% { transform: translateY(10px) scale(1.1); }
-          45%, 55% { transform: translateY(-60px) scale(0.9); }
-        }
-        @keyframes liquid-drop-bottom {
-          0%, 15%, 85%, 100% { transform: translateY(-15px) scale(0.8); }
-          45%, 55% { transform: translateY(35px) scale(1); }
+
+        /* Bridge just breathes gently */
+        @keyframes ll-bridge {
+          0%, 100% { transform: scale(1.0); }
+          50%       { transform: scale(1.2); }
         }
       `}</style>
     </div>
