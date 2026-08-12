@@ -26,10 +26,19 @@ export async function getOrCreateATAInstruction(
   owner: PublicKey
 ): Promise<{ ata: PublicKey, instruction: TransactionInstruction | null }> {
   
+  // Fetch the mint's owner (Token Program or Token-2022)
+  const mintInfo = await connection.getAccountInfo(mint);
+  const tokenProgramId = mintInfo?.owner; // Will be TOKEN_PROGRAM_ID or TOKEN_2022_PROGRAM_ID
+
+  if (!tokenProgramId) {
+    throw new Error(`Mint not found: ${mint.toBase58()}`);
+  }
+
   const ataAddress = await getAssociatedTokenAddress(
     mint,
     owner,
-    true // allowOwnerOffCurve = true (important for PDA owners like Market Vaults)
+    true, // allowOwnerOffCurve = true (important for PDA owners like Market Vaults)
+    tokenProgramId
   );
 
   let instruction: TransactionInstruction | null = null;
@@ -49,7 +58,8 @@ export async function getOrCreateATAInstruction(
         payer,
         ataAddress,
         owner,
-        mint
+        mint,
+        tokenProgramId // pass the correct program ID (Token or Token-2022)
       );
     } else {
       // Re-throw other unexpected errors
