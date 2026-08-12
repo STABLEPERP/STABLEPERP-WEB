@@ -9,6 +9,13 @@ interface NavbarProps {
   variant?: 'landing' | 'terminal';
 }
 
+export const LogoText: FC = () => (
+  <span className="logo-text" style={{ letterSpacing: '-0.5px', display: 'inline-flex', alignItems: 'baseline' }}>
+    <span style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: 300 }}>Stable</span>
+    <span style={{ fontFamily: 'Garamond, "Times New Roman", serif', fontStyle: 'italic', fontWeight: 300, fontSize: '1.05em', WebkitFontSmoothing: 'antialiased' }}>perp</span>
+  </span>
+);
+
 export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isTerminal = variant === 'terminal';
@@ -20,10 +27,9 @@ export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
       <Link to="/" style={{ textDecoration: 'none' }}>
         <div className="navbar-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img src="/logo.png" alt="Stableperp Logo" style={{ height: '32px' }} />
-          <span className="logo-text" style={{ fontSize: '1.4rem', letterSpacing: '-0.5px', color: '#081A16' }}>
-            <span style={{ fontWeight: 300, fontFamily: 'system-ui, -apple-system, sans-serif' }}>Stable</span>
-            <span style={{ fontStyle: "italic", fontFamily: "'Playfair Display', serif", fontWeight: 400, marginLeft: '-1px' }}>perp</span>
-          </span>
+          <div style={{ fontSize: '1.5rem', color: isTerminal ? '#FFFFFF' : '#081A16' }}>
+            <LogoText />
+          </div>
           {isTerminal && <span className="navbar-badge">TERMINAL</span>}
         </div>
       </Link>

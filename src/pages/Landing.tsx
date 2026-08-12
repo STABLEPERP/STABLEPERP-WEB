@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { LogoText } from '../components/Navbar';
 
 /* =============================================================================
    STABLEPERP — landing page in the Hyperliquid (hyperfoundation.org) design
-   language, themed for Stableperp. Signature: interactive isometric
-   "The Stableperp Stack". Self-contained single file, no external assets.
+   language, themed for <LogoText />, Signature: interactive isometric
+   "The <LogoText /> Stack". Self-contained single file, no external assets.
 ============================================================================= */
 
 const MINT = "#97FCE4";
@@ -169,9 +170,6 @@ function Box({ item }: any) {
   return (
     <g>
       {poly(lf, leftC)}{poly(rf, rightC)}{poly([A, B, C, D], topC)}
-      <text x={lc.x} y={lc.y} transform={`rotate(-26.5 ${lc.x} ${lc.y})`} textAnchor="middle"
-        fontFamily={MONO} fontSize="10" fill={flag ? INK : ON_DARK} opacity={flag ? 0.9 : 0.85}
-        style={{ pointerEvents: "none", letterSpacing: "0.05em", fontWeight: 600 }}>{label}</text>
     </g>
   );
 }
@@ -230,7 +228,7 @@ function StableperpStack() {
         {/* HTML Text overlays via foreignObject */}
         <foreignObject x="40" y="30" width="240" height="150">
           <div style={{ color: "rgba(232,247,241,0.9)", fontFamily: SANS, fontSize: 14, lineHeight: 1.5 }}>
-            Options and perps are the flagship applications built natively on Stableperp Core. But they are just the tip of the iceberg.
+            Options and perps are the flagship applications built natively on <LogoText /> Core. But they are just the tip of the iceberg.
           </div>
         </foreignObject>
 
@@ -305,12 +303,49 @@ const Pill = ({ children, filled, to = "#" }: any) => (
   }}>{children}</Link>
 );
 
+function LiquidLogo() {
+  return (
+    <div style={{ position: 'relative', width: 200, height: 240, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+        <filter id="liquid-filter">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
+          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="liquid" />
+          <feBlend in="SourceGraphic" in2="liquid" />
+        </filter>
+      </svg>
+      <div style={{
+        filter: 'url(#liquid-filter)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', inset: 0
+      }}>
+        <div className="liquid-blob-top" style={{ background: '#0A2622', width: 90, height: 90, borderRadius: '50%', position: 'absolute' }}></div>
+        <div className="liquid-logo-bottom" style={{ position: 'absolute' }}>
+          <Logo size={112} glow={false} />
+        </div>
+      </div>
+      <style>{`
+        .liquid-blob-top {
+          animation: liquid-drop-top 4.5s ease-in-out infinite;
+        }
+        .liquid-logo-bottom {
+          animation: liquid-drop-bottom 4.5s ease-in-out infinite;
+        }
+        @keyframes liquid-drop-top {
+          0%, 15%, 85%, 100% { transform: translateY(10px) scale(1.1); }
+          45%, 55% { transform: translateY(-60px) scale(0.9); }
+        }
+        @keyframes liquid-drop-bottom {
+          0%, 15%, 85%, 100% { transform: translateY(-15px) scale(0.8); }
+          45%, 55% { transform: translateY(35px) scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function StableperpLanding() {
   const location = useLocation();
 
   useEffect(() => {
     if (location.hash) {
-      // Use setTimeout to ensure the DOM has finished rendering
       setTimeout(() => {
         const id = location.hash.replace('#', '');
         const element = document.getElementById(id);
@@ -332,14 +367,7 @@ export default function StableperpLanding() {
           60%  { opacity: 1; }
           100% { opacity: 1; transform: scale(1); }
         }
-        @keyframes sp-elastic {
-          0%, 100% { transform: rotate(-15deg) scaleX(1.08) scaleY(0.92); }
-          25%      { transform: rotate(0deg)   scaleX(1)    scaleY(1); }
-          50%      { transform: rotate(15deg)  scaleX(1.08) scaleY(0.92); }
-          75%      { transform: rotate(0deg)   scaleX(1)    scaleY(1); }
-        }
         .sp-enter   { display:inline-block; transform-origin:center; animation: sp-enter 1s cubic-bezier(.2,.8,.3,1.2) both; }
-        .sp-elastic { display:inline-block; transform-origin:50% 55%; animation: sp-elastic 2.6s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .sp-enter, .sp-elastic { animation: none; } }
       `}</style>
 
@@ -348,9 +376,9 @@ export default function StableperpLanding() {
         <AnimatedContours />
         <div style={{ position: "relative", maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
           <div style={{ marginBottom: 40, display: "flex", justifyContent: "center" }}>
-            <span className="sp-enter"><span className="sp-elastic">
-              <Logo size={112} glow />
-            </span></span>
+            <span className="sp-enter">
+              <LiquidLogo />
+            </span>
           </div>
           <p style={{ fontFamily: SANS, fontSize: 19, lineHeight: 1.5, color: INK, margin: "0 0 8px" }}>
             No brokers. No settlement delays.<br />No market hours to wait for.
@@ -386,10 +414,10 @@ export default function StableperpLanding() {
       {/* OWNERSHIP */}
       <section id="ownership" style={{ background: CREAM2, padding: "110px 20px", textAlign: "center" }}>
         <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px, 5vw, 52px)", fontWeight: 400, lineHeight: 1.28, maxWidth: 900, margin: "0 auto", color: MUT_INK, letterSpacing: "-0.01em" }}>
-          Anyone can own and govern <span style={{ color: INK }}>Stableperp</span> through{" "}
+          Anyone can own and govern <LogoText /> through{" "}
           <span style={{ color: INK }}>$SPERP</span>, the protocol&rsquo;s native token.
         </h2>
-        <p style={{ fontFamily: SANS, fontSize: 17, color: INK, marginTop: 30 }}>Own a piece of Stableperp today.</p>
+        <p style={{ fontFamily: SANS, fontSize: 17, color: INK, marginTop: 30 }}>Own a piece of <LogoText /> today.</p>
         <div style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 26, flexWrap: "wrap" }}>
           <Pill filled to="/terminal">Start Trading</Pill>
           <Pill to="/docs">Start Building</Pill>
@@ -431,7 +459,7 @@ export default function StableperpLanding() {
       {/* STACK (dark) */}
       <section id="stack" style={{ background: FOREST, color: ON_DARK, padding: "100px 20px 110px" }}>
         <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px, 6vw, 62px)", fontWeight: 400, textAlign: "center", letterSpacing: "-0.01em", margin: "0 0 20px" }}>
-          The Stable<span style={{ fontStyle: "italic" }}>perp</span> Stack
+          The <LogoText /> Stack
         </h2>
         <p style={{ fontFamily: SANS, fontSize: 17, color: MUT_DARK, textAlign: "center", maxWidth: 620, margin: "0 auto 40px", lineHeight: 1.6 }}>
           Options and perps are the flagship markets. But they are just the tip of the iceberg.

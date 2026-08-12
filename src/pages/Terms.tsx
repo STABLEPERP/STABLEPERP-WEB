@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { SilkBackground } from '../components/SilkBackground';
+import { LogoText } from '../components/Navbar';
 
 export const Terms: FC = () => {
   return (
@@ -26,14 +27,14 @@ export const Terms: FC = () => {
             1. Introduction
           </h2>
           <p style={{ marginBottom: '2rem' }}>
-            Welcome to Stableperp. By accessing or using our decentralized protocol and website, you agree to be bound by these Terms & Conditions. If you do not agree to all the terms and conditions, then you may not access the protocol.
+            Welcome to <LogoText />. By accessing or using our decentralized protocol and website, you agree to be bound by these Terms & Conditions. If you do not agree to all the terms and conditions, then you may not access the protocol.
           </p>
 
           <h2 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', marginBottom: '1.5rem', color: '#FFF' }}>
             2. Decentralized Protocol
           </h2>
           <p style={{ marginBottom: '2rem' }}>
-            Stableperp is a decentralized application (dApp) built on the Solana blockchain. We do not hold your funds, take custody of your assets, or execute trades on your behalf. All transactions are peer-to-peer and governed entirely by smart contracts.
+            <LogoText /> is a decentralized application (dApp) built on the Solana blockchain. We do not hold your funds, take custody of your assets, or execute trades on your behalf. All transactions are peer-to-peer and governed entirely by smart contracts.
           </p>
 
           <h2 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', marginBottom: '1.5rem', color: '#FFF' }}>

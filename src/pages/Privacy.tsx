@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { SilkBackground } from '../components/SilkBackground';
+import { LogoText } from '../components/Navbar';
 
 export const Privacy: FC = () => {
   return (
@@ -26,14 +27,14 @@ export const Privacy: FC = () => {
             1. Information We Do Not Collect
           </h2>
           <p style={{ marginBottom: '2rem' }}>
-            As a decentralized application (dApp), Stableperp respects your privacy. We do not require you to create an account, provide an email address, or submit KYC (Know Your Customer) information to interact with our smart contracts.
+            As a decentralized application (dApp), <LogoText /> respects your privacy. We do not require you to create an account, provide an email address, or submit KYC (Know Your Customer) information to interact with our smart contracts.
           </p>
 
           <h2 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', marginBottom: '1.5rem', color: '#FFF' }}>
             2. Blockchain Data
           </h2>
           <p style={{ marginBottom: '2rem' }}>
-            By using the Stableperp protocol, you understand that all transaction data—including your public wallet address and trading history—is permanently recorded on the Solana blockchain, which is a public and immutable ledger. We have no control over this data.
+            By using the <LogoText /> protocol, you understand that all transaction data—including your public wallet address and trading history—is permanently recorded on the Solana blockchain, which is a public and immutable ledger. We have no control over this data.
           </p>
 
           <h2 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', marginBottom: '1.5rem', color: '#FFF' }}>

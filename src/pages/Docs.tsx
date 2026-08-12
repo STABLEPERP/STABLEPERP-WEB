@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { SilkBackground } from '../components/SilkBackground';
+import { LogoText } from '../components/Navbar';
 
 const MINT = "#97FCE4";
 const INK = "#0A2622";
@@ -31,18 +32,18 @@ export const Docs: FC = () => {
         lineHeight: '1.8'
       }}>
         <div className="glass-panel" style={{ padding: '3rem', borderRadius: '24px', background: '#fff', border: '1px solid rgba(10,38,34,0.08)', boxShadow: '0 10px 40px rgba(10,38,34,0.05)' }}>
-          <h1 style={{ color: INK, fontSize: '2.5rem', marginBottom: '1rem', fontFamily: SERIF, fontWeight: 500 }}>
-            Stable<span style={{ fontStyle: "italic" }}>perp</span> Documentation
+          <h1 style={{ fontFamily: SERIF, fontSize: '2.5rem', fontWeight: 400, color: INK, marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
+            <LogoText /> Documentation
           </h1>
           <p style={{ color: MUT_INK, marginBottom: '3rem', fontSize: '1.1rem' }}>
-            Learn how to trade options, provide liquidity, and integrate with the Stableperp protocol.
+            Learn how to trade options, provide liquidity, and integrate with the <LogoText /> protocol.
           </p>
 
           <h2 style={{ borderBottom: '1px solid rgba(10,38,34,0.1)', paddingBottom: '0.5rem', marginBottom: '1.5rem', color: INK, fontFamily: SERIF, fontWeight: 500 }}>
             Overview
           </h2>
           <p style={{ marginBottom: '2rem', color: MUT_INK }}>
-            Stableperp is a decentralized derivatives protocol built on Solana. It allows users to trade fully-collateralized call and put options on various assets (Crypto and US Stocks) settled entirely in USDC.
+            <LogoText /> is a decentralized derivatives protocol built on Solana. It allows users to trade fully-collateralized call and put options on various assets (Crypto and US Stocks) settled entirely in USDC.
           </p>
 
           <h2 style={{ borderBottom: '1px solid rgba(10,38,34,0.1)', paddingBottom: '0.5rem', marginBottom: '1.5rem', color: INK, fontFamily: SERIF, fontWeight: 500 }}>
