@@ -366,6 +366,25 @@ export default function StableperpLanding() {
           <p style={{ fontFamily: SANS, fontSize: 18, color: MUT_INK, maxWidth: 540, margin: "26px auto 0", lineHeight: 1.6 }}>
             Options on real US stocks, priced by Pyth and settled in USDC. Built on Solana.
           </p>
+          {import.meta.env.VITE_CA && (
+            <div style={{ marginTop: 20 }}>
+              <a 
+                href={`https://pump.fun/${import.meta.env.VITE_CA}`} 
+                target="_blank" 
+                rel="noreferrer"
+                style={{ 
+                  display: "inline-block", fontFamily: MONO, fontSize: 13, color: INK, 
+                  background: "rgba(10,38,34,0.06)", border: "1px solid rgba(10,38,34,0.15)", 
+                  padding: "8px 16px", borderRadius: 999, textDecoration: "none", letterSpacing: "0.05em",
+                  transition: "all 0.2s ease"
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = "rgba(10,38,34,0.1)")}
+                onMouseOut={(e) => (e.currentTarget.style.background = "rgba(10,38,34,0.06)")}
+              >
+                CA: {import.meta.env.VITE_CA}
+              </a>
+            </div>
+          )}
         </div>
       </section>
 
@@ -442,7 +461,18 @@ export default function StableperpLanding() {
           <Logo size={24} glow />
           <Wordmark color={ON_DARK} size={20} />
         </span>
-        <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em" }}>$SPERP · CA SOON</span>
+        <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em" }}>
+          $SPERP · {import.meta.env.VITE_CA ? (
+            <a 
+              href={`https://pump.fun/${import.meta.env.VITE_CA}`} 
+              target="_blank" 
+              rel="noreferrer"
+              style={{ color: MINT, textDecoration: "none" }}
+            >
+              CA: {import.meta.env.VITE_CA.slice(0, 4)}...{import.meta.env.VITE_CA.slice(-4)}
+            </a>
+          ) : "CA SOON"}
+        </span>
         <span style={{ fontFamily: SANS, fontSize: 12, maxWidth: 360, textAlign: "right", lineHeight: 1.5 }}>
           Derivatives involve risk. Access is restricted by jurisdiction. Nothing here is financial advice.
         </span>
