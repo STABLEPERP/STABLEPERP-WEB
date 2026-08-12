@@ -23,12 +23,12 @@
   transform: translateX(-50%);
   width: calc(100% - 3rem);
   max-width: 1200px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background-color: rgba(20, 20, 20, 0.4);
+  border: 1px solid rgba(10, 38, 34, 0.08);
+  background-color: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-radius: 24px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  border-radius: 999px;
+  box-shadow: 0 10px 40px rgba(10, 38, 34, 0.05);
 }
 
 .navbar-logo {
@@ -159,4 +159,29 @@
 @keyframes slideDown {
   from { opacity: 0; transform: translate(-50%, -10px); }
   to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.navbar-landing .navbar-logo {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 500;
+  color: #0A2622 !important;
+}
+.navbar-landing .navbar-links a {
+  font-family: -apple-system, system-ui, sans-serif;
+  color: rgba(10, 38, 34, 0.62) !important;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.navbar-landing .navbar-links a:hover {
+  color: #0A2622 !important;
+}
+.navbar-landing .hamburger-btn {
+  color: #0A2622;
+}
+.navbar-landing .mobile-menu-overlay {
+  background: rgba(255, 255, 255, 0.95);
+}
+.navbar-landing .mobile-menu-content a {
+  color: #0A2622;
+  font-family: 'Fraunces', Georgia, serif;
 }

@@ -26,6 +26,7 @@ const fragmentShaderSource = `
   uniform vec3 u_color;
   uniform float u_intensity;
   uniform float u_scale;
+  uniform vec3 u_bgColor;
 
   // Simplex 2D noise
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -88,16 +89,15 @@ const fragmentShaderSource = `
     // Smooth and remap the noise
     f = smoothstep(0.0, 1.0, f);
     
-    // Background color #0A0A0A
-    vec3 bg = vec3(0.039, 0.039, 0.039);
+    vec3 bg = u_bgColor;
     
     // Combine colors based on noise
-    vec3 color = mix(bg, u_color, f * u_intensity);
+    vec3 color = mix(bg, u_color, clamp(f * u_intensity, 0.0, 1.0));
     
     // Vignette
     vec2 p = gl_FragCoord.xy / u_resolution.xy;
     float vignette = smoothstep(2.0, 0.4, length(p - 0.5) * 2.0);
-    color *= vignette;
+    color = mix(bg, color, vignette);
     
     // Film grain
     float noise = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
@@ -108,6 +108,7 @@ const fragmentShaderSource = `
 `;
 
 interface SilkBackgroundProps {
+  bgColor?: string;     // Background hex
   color?: string;       // Accent hex
   speed?: number;       // Animation multiplier
   intensity?: number;   // Brightness/contrast
@@ -115,6 +116,7 @@ interface SilkBackgroundProps {
 }
 
 export const SilkBackground: React.FC<SilkBackgroundProps> = ({
+  bgColor = '#0A0A0A',
   color = '#5EEAD4',
   speed = 1.0,
   intensity = 0.25,
@@ -178,11 +180,14 @@ export const SilkBackground: React.FC<SilkBackgroundProps> = ({
     const uResolution = gl.getUniformLocation(program, 'u_resolution');
     const uTime = gl.getUniformLocation(program, 'u_time');
     const uColor = gl.getUniformLocation(program, 'u_color');
+    const uBgColor = gl.getUniformLocation(program, 'u_bgColor');
     const uIntensity = gl.getUniformLocation(program, 'u_intensity');
     const uScale = gl.getUniformLocation(program, 'u_scale');
 
     const rgbColor = hexToRgb(color);
     gl.uniform3f(uColor, rgbColor.r, rgbColor.g, rgbColor.b);
+    const bgRgb = hexToRgb(bgColor);
+    gl.uniform3f(uBgColor, bgRgb.r, bgRgb.g, bgRgb.b);
     gl.uniform1f(uIntensity, intensity);
     gl.uniform1f(uScale, scale);
 

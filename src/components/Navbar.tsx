@@ -20,16 +20,16 @@ export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
       <Link to="/" style={{ textDecoration: 'none' }}>
         <div className="navbar-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img src="/logo.png" alt="Stableperp Logo" style={{ height: '32px' }} />
-          <span className="logo-text">STABLEPERP</span>
+          <span className="logo-text">Stable<i style={{ fontStyle: "italic" }}>perp</i></span>
           {isTerminal && <span className="navbar-badge">TERMINAL</span>}
         </div>
       </Link>
       {!isTerminal && (
         <div className="navbar-links">
-          <a href="#infrastructure" style={{ color: '#FFF', textDecoration: 'none' }}>Infrastructure</a>
-          <a href="#markets" style={{ color: '#FFF', textDecoration: 'none' }}>Markets</a>
-          <Link to="/docs" style={{ color: '#5EEAD4', textDecoration: 'none' }}>Docs</Link>
-          <a href="#roadmap" style={{ color: '#A3A3A3', textDecoration: 'none' }}>Roadmap</a>
+          <Link to="/#ownership" style={{ textDecoration: 'none' }}>Ownership</Link>
+          <Link to="/#flagship" style={{ textDecoration: 'none' }}>Platform</Link>
+          <Link to="/docs" style={{ textDecoration: 'none' }}>Docs</Link>
+          <Link to="/#stack" style={{ textDecoration: 'none' }}>The Stack</Link>
         </div>
       )}
       <div className="navbar-actions">
@@ -69,7 +69,7 @@ export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
             </span>
           </div>
         )}
-        <WalletMultiButton className="wallet-adapter-button" style={{ backgroundColor: '#5EEAD4', color: '#0A0A0A', fontFamily: "'Space Mono', monospace", borderRadius: '8px', height: '36px', padding: '0 1rem', fontWeight: 'bold', fontSize: '0.875rem' }} />
+        <WalletMultiButton className="wallet-adapter-button" style={{ backgroundColor: isTerminal ? '#5EEAD4' : '#97FCE4', color: isTerminal ? '#0A0A0A' : '#0A2622', fontFamily: isTerminal ? "'Space Mono', monospace" : "-apple-system, system-ui, sans-serif", borderRadius: '999px', height: '42px', padding: '0 1.5rem', fontWeight: 500, fontSize: '0.95rem', border: isTerminal ? 'none' : '1.5px solid #97FCE4' }} />
         {!isTerminal && (
           <button 
             className="hamburger-btn" 
@@ -97,10 +97,10 @@ export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
     {!isTerminal && isMobileMenuOpen && (
       <div className="mobile-menu-overlay">
         <div className="mobile-menu-content">
-          <a href="#infrastructure" onClick={() => setIsMobileMenuOpen(false)}>Infrastructure</a>
-          <a href="#markets" onClick={() => setIsMobileMenuOpen(false)}>Markets</a>
-          <Link to="/docs" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#5EEAD4' }}>Docs</Link>
-          <a href="#roadmap" onClick={() => setIsMobileMenuOpen(false)}>Roadmap</a>
+          <Link to="/#ownership" onClick={() => setIsMobileMenuOpen(false)}>Ownership</Link>
+          <Link to="/#flagship" onClick={() => setIsMobileMenuOpen(false)}>Platform</Link>
+          <Link to="/docs" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: 'none' }}>Documentation</Link>
+          <Link to="/#stack" onClick={() => setIsMobileMenuOpen(false)}>The Stack</Link>
         </div>
       </div>
     )}
