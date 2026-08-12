@@ -20,7 +20,10 @@ export const Navbar: FC<NavbarProps> = ({ variant = 'landing' }) => {
       <Link to="/" style={{ textDecoration: 'none' }}>
         <div className="navbar-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img src="/logo.png" alt="Stableperp Logo" style={{ height: '32px' }} />
-          <span className="logo-text">Stable<i style={{ fontStyle: "italic" }}>perp</i></span>
+          <span className="logo-text" style={{ fontSize: '1.25rem', letterSpacing: '-0.5px', color: '#FFF' }}>
+            <span style={{ fontWeight: 400, fontFamily: 'system-ui, -apple-system, sans-serif' }}>Stable</span>
+            <span style={{ fontStyle: "italic", fontFamily: 'Georgia, "Times New Roman", serif', fontWeight: 400 }}>perp</span>
+          </span>
           {isTerminal && <span className="navbar-badge">TERMINAL</span>}
         </div>
       </Link>
