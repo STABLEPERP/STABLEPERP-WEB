@@ -62,7 +62,7 @@ function AnimatedContours({ color = INK, lines = 9, baseAlpha = 0.11 }: any) {
     resize();
     window.addEventListener("resize", resize);
 
-    const draw = (t) => {
+    const draw = (t: number) => {
       ctx.clearRect(0, 0, W, H);
       const cx = W / 2, cy = H * 0.46;
       const R = Math.max(W, H);
