@@ -412,7 +412,7 @@ export default function StableperpLanding() {
             No brokers. No settlement delays.<br />No market hours to wait for.
           </p>
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(58px, 11vw, 128px)", fontWeight: 400, letterSpacing: "-0.02em", margin: "10px 0 0", lineHeight: 1 }}>
-            Onchain first.
+            Onchain First.
           </h1>
           <p style={{ fontFamily: SANS, fontSize: 18, color: MUT_INK, maxWidth: 540, margin: "26px auto 0", lineHeight: 1.6 }}>
             Options on real US stocks, priced by Pyth and settled in USDC. Built on Solana.

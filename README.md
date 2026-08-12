@@ -1,32 +1,24 @@
-# React + TypeScript + Vite
+# 🌊 Stableperp
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+**Onchain First. No brokers. No settlement delays. No market hours to wait for.**
 
-Currently, two official plugins are available:
+Stableperp is a revolutionary decentralized protocol bringing traditional finance to the blockchain. We are building the future of derivatives trading by offering **options on real US stocks, priced by Pyth and settled in USDC.**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Why Stableperp?
 
-## React Compiler
+The traditional financial system is slow, exclusive, and gated by middlemen. We are dismantling these barriers to provide a seamless, entirely on-chain trading experience.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Unrestricted Access:** Trade US stock options globally without border restrictions, KYC bottlenecks, or brokerage gatekeeping.
+- **Instant Settlement:** Goodbye T+2 settlement delays. With Stableperp, options settle instantly and transparently on the blockchain.
+- **24/7 Availability:** The blockchain never sleeps. We are pioneering a seamless trading experience where you don't have to wait for the opening bell.
+- **True Decentralization:** Your keys, your trades. We offer a non-custodial platform where you remain in full control of your assets.
 
-## Expanding the Oxlint configuration
+## 💎 The $SPERP Ecosystem
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+The $SPERP token is the lifeblood of the Stableperp ecosystem. By holding $SPERP, you are joining a movement to democratize global finance and bring massive liquidity to on-chain Real World Assets (RWAs).
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+Our vision is to build a comprehensive suite of financial tools—Vaults, Collateral management, and Corporate Actions—all powered by the blockchain.
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+**Join the revolution. The future of derivatives is decentralized.**
+
+🌐 [Website](https://stableperp.tech/) | 🐦 [X (Twitter)](https://x.com/stableperp)
