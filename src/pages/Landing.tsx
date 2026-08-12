@@ -234,11 +234,6 @@ function StableperpStack() {
           </div>
         </foreignObject>
 
-        <foreignObject x="40" y="260" width="240" height="150">
-          <div style={{ color: "rgba(232,247,241,0.9)", fontFamily: SANS, fontSize: 14, lineHeight: 1.5 }}>
-            User-built applications and AI Agents interact seamlessly with the Core to quote, trade, and provide liquidity autonomously.
-          </div>
-        </foreignObject>
 
         <foreignObject x="860" y="90" width="240" height="200">
           <div style={{ color: "rgba(232,247,241,0.9)", fontFamily: SANS, fontSize: 14, lineHeight: 1.5 }}>
