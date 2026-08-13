@@ -49,29 +49,36 @@ export const BuyOption: FC<BuyOptionProps> = ({ market, optionType = 'call' }) =
       const optionMint = new PublicKey(market.optionMint || PublicKey.unique().toBase58());
       const quoteMint = new PublicKey(market.quoteMint || PublicKey.unique().toBase58());
       
-      // Use the Deployer/Admin Wallet as the primary liquidity provider (House)
-      const deployerPubkey = new PublicKey(import.meta.env.VITE_DEPLOYER_WALLET_ADDRESS || 'EyGWj7QuBQ2Kc6cAQbYu4Wfd686tgeM3oCcUqBxmeeiU');
+      // Dynamically find a writer that has enough liquidity
+      const allWriters = await (program as any).account.writerPosition.all([
+        { memcmp: { offset: 8, bytes: marketPubkey.toBase58() } } // Filter by market
+      ]);
       
-      const [writerPosition] = PublicKey.findProgramAddressSync(
-        [Buffer.from('writer'), marketPubkey.toBuffer(), deployerPubkey.toBuffer()],
-        program.programId
-      );
+      let deployerPubkey: PublicKey | null = null;
+      let writerPosition: PublicKey | null = null;
       
-      const { getAssociatedTokenAddressSync } = await import('@solana/spl-token');
-      const escrowOptionVault = getAssociatedTokenAddressSync(optionMint, writerPosition, true);
-
-      // Check if writer position is initialized before buying
-      const writerPosInfo = await connection.getAccountInfo(writerPosition);
-      if (!writerPosInfo) {
+      for (const w of allWriters) {
+         const available = w.account.mintedAmount.toNumber() - w.account.filledAmount.toNumber();
+         if (available >= quantity) {
+             deployerPubkey = w.account.writer;
+             writerPosition = w.publicKey;
+             break;
+         }
+      }
+      
+      if (!deployerPubkey || !writerPosition) {
         setModalState({ 
           isOpen: true, 
           type: 'info', 
-          title: 'Pool Not Initialized', 
-          message: "Pool Not Initialized!\n\nThe liquidity provider (House) has not seeded this market yet. Please click 'Sell Call' or 'Sell Put' from the order grid first (as the deployer) to initialize the liquidity pool." 
+          title: 'Insufficient Liquidity', 
+          message: "No single writer has enough options available to fill this order.\n\nPlease reduce your quantity or ask a liquidity provider to 'Sell Call' more options." 
         });
         setLoading(false);
         return;
       }
+
+      const { getAssociatedTokenAddressSync } = await import('@solana/spl-token');
+      const escrowOptionVault = getAssociatedTokenAddressSync(optionMint, writerPosition, true);
 
       // Ensure WRITER quote ATA exists (deployerPubkey), create if not so the transfer succeeds
       const { ata: writerQuoteAta, instruction: createWriterQuoteAtaIx } = await getOrCreateATAInstruction(
