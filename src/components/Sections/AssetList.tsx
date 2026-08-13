@@ -232,9 +232,13 @@ export const AssetList: FC<AssetListProps> = ({ onSelectAsset, selectedAssetId, 
         marginBottom: '0.5rem',
         position: 'sticky',
         top: 0,
-        backgroundColor: '#141414',
+        backgroundColor: 'rgba(20, 20, 20, 0.85)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         zIndex: 10,
-        paddingTop: '0.5rem' // extra padding to look good when stuck
+        paddingTop: '0.5rem',
+        margin: '0 -0.5rem', // Offset padding if any, to connect to edges
+        padding: '0.5rem 0.5rem 0 0.5rem'
       }}>
         <button 
           onClick={() => handleTabChange('crypto')}
