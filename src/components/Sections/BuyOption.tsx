@@ -58,6 +58,9 @@ export const BuyOption: FC<BuyOptionProps> = ({ market, optionType = 'call' }) =
       let writerPosition: PublicKey | null = null;
       
       for (const w of allWriters) {
+         // Prevent buying from yourself
+         if (w.account.writer.toBase58() === publicKey.toBase58()) continue;
+
          const available = w.account.mintedAmount.toNumber() - w.account.filledAmount.toNumber();
          if (available >= quantity) {
              deployerPubkey = w.account.writer;
