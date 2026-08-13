@@ -73,8 +73,13 @@ export const BuyOption: FC<BuyOptionProps> = ({ market, optionType = 'call' }) =
         return;
       }
 
-      // WRITER quote ATA receives the USDC (deployerPubkey), not the buyer!
-      const writerQuoteAta = getAssociatedTokenAddressSync(quoteMint, deployerPubkey);
+      // Ensure WRITER quote ATA exists (deployerPubkey), create if not so the transfer succeeds
+      const { ata: writerQuoteAta, instruction: createWriterQuoteAtaIx } = await getOrCreateATAInstruction(
+        connection,
+        publicKey, // Buyer pays the rent to initialize it if needed
+        quoteMint,
+        deployerPubkey
+      );
 
       // Create ATAs for buyer if they don't exist
       const { ata: buyerOptionAta, instruction: createBuyerOptionAtaIx } = await getOrCreateATAInstruction(
@@ -92,6 +97,7 @@ export const BuyOption: FC<BuyOptionProps> = ({ market, optionType = 'call' }) =
       );
 
       const transaction = new anchor.web3.Transaction();
+      if (createWriterQuoteAtaIx) transaction.add(createWriterQuoteAtaIx);
       if (createBuyerOptionAtaIx) transaction.add(createBuyerOptionAtaIx);
       if (createBuyerQuoteAtaIx) transaction.add(createBuyerQuoteAtaIx);
 
