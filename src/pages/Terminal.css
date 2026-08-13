@@ -20,6 +20,26 @@
   backdrop-filter: blur(16px);
 }
 
+/* Custom Scrollbar for Terminal Panels */
+.terminal-panel *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.terminal-panel *::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02); 
+  border-radius: 8px;
+}
+
+.terminal-panel *::-webkit-scrollbar-thumb {
+  background: rgba(94, 234, 212, 0.2); 
+  border-radius: 8px;
+}
+
+.terminal-panel *::-webkit-scrollbar-thumb:hover {
+  background: rgba(94, 234, 212, 0.4); 
+}
+
 .terminal-left {
   grid-row: 1 / 3;
 }

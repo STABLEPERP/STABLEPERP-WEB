@@ -78,7 +78,7 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
             apiMarkets = apiMarkets.map(m => {
               const chainData = liquidityMap[m.address];
               if (chainData) {
-                m.totalLiquidity = chainData.totalLiquidity / (10 ** 9);
+                m.totalLiquidity = chainData.totalLiquidity / (10 ** 6);
                 if (chainData.lowestPremium !== Infinity) {
                   m.premiumAsk = chainData.lowestPremium / (10 ** 6);
                 }
