@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MarketList } from '../components/Sections/MarketList';
 import { WriteOption } from '../components/Sections/WriteOption';
 import { BuyOption } from '../components/Sections/BuyOption';
@@ -9,8 +10,12 @@ import { KYCDisclaimer } from '../components/common/KYCDisclaimer';
 import './Terminal.css';
 
 export function Terminal() {
-  const [orderAction, setOrderAction] = useState<'buy' | 'sell'>('buy');
-  const [orderType, setOrderType] = useState<'call' | 'put'>('call');
+  const [searchParams] = useSearchParams();
+  const initialMarketId = searchParams.get('market');
+  const initialAction = searchParams.get('action'); // "buy_call", "write_call", etc.
+
+  const [orderAction, setOrderAction] = useState<'buy' | 'sell'>(initialAction?.startsWith('write') ? 'sell' : 'buy');
+  const [orderType, setOrderType] = useState<'call' | 'put'>(initialAction?.endsWith('put') ? 'put' : 'call');
   const [bottomTab, setBottomTab] = useState<'chain' | 'positions'>('chain');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [selectedMarket, setSelectedMarket] = useState<any | null>(null);
@@ -100,6 +105,7 @@ export function Terminal() {
             }} 
             selectedMarketId={selectedMarket?.id} 
             filterAssetSymbol={selectedAsset?.symbol} 
+            initialMarketId={initialMarketId}
           />
         ) : (
           <UserPositions />

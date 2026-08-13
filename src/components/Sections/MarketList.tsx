@@ -26,9 +26,10 @@ interface MarketListProps {
   onSelectMarket?: (market: Market) => void;
   selectedMarketId?: string;
   filterAssetSymbol?: string;
+  initialMarketId?: string | null;
 }
 
-export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarketId, filterAssetSymbol }) => {
+export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarketId, filterAssetSymbol, initialMarketId }) => {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(true);
   const [pythPrices, setPythPrices] = useState<Record<string, number>>({});
@@ -91,6 +92,14 @@ export const MarketList: FC<MarketListProps> = ({ onSelectMarket, selectedMarket
         }
 
         setMarkets(apiMarkets);
+        
+        // Auto-select market from URL if provided
+        if (initialMarketId) {
+          const m = apiMarkets.find((mkt) => mkt.id === initialMarketId);
+          if (m && onSelectMarket) {
+            onSelectMarket(m);
+          }
+        }
       } catch (err) {
         console.error('Error fetching markets:', err);
       } finally {
