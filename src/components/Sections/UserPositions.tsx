@@ -148,7 +148,7 @@ export const UserPositions: FC = () => {
             market,
             symbol,
             strike,
-            size: wp.account.mintedAmount.toNumber() / (10 ** 9),
+            size: wp.account.mintedAmount.toNumber() / (10 ** 6),
             premium: wp.account.premiumAsk.toNumber() / (10 ** 6),
             pnl: null, // Calculated reactively from live prices
             pythFeedId,
@@ -168,7 +168,8 @@ export const UserPositions: FC = () => {
         for (const ta of tokenAccounts.value) {
           const accountData = ta.account.data.parsed.info;
           const mint = accountData.mint;
-          const amount = accountData.tokenAmount.uiAmount;
+          const rawAmount = parseInt(accountData.tokenAmount.amount);
+          const amount = rawAmount / (10 ** 6);
 
           if (amount > 0) {
             const matchingMarket = markets.find(
